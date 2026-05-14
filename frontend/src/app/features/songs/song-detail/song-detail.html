@@ -1,0 +1,50 @@
+@if (loading) {
+<div class="center"><mat-spinner /></div>
+}
+
+@if (song && !loading) {
+<div class="song-page">
+    <div class="song-header">
+        <div class="container">
+            <h1>{{ song.title }}</h1>
+            <h2>{{ song.artist }}</h2>
+        </div>
+    </div>
+
+    <!-- <div class="transpose-bar">
+        <div class="container">
+            <span class="transpose-label">
+                <mat-icon>tune</mat-icon>
+                Transpozicija:
+                <strong>{{ transposeLabel }}</strong>
+            </span>
+
+            <div class="transpose-controls">
+                <button mat-icon-button (click)="changeSemitones(-1)" [disabled]="semitones === -6">
+                    <mat-icon>remove</mat-icon>
+                </button>
+                <span class="semitone-display">{{ semitones > 0 ? '+' : '' }}{{ semitones }}</span>
+                <button mat-icon-button (click)="changeSemitones(1)" [disabled]="semitones === 6">
+                    <mat-icon>add</mat-icon>
+                </button>
+                <button mat-stroked-button (click)="resetTranspose()" [disabled]="semitones === 0">
+                    Resetuj
+                </button>
+            </div>
+        </div>
+    </div> -->
+
+    <div class="chords-legend container">
+        <strong>Akordi:</strong>
+        <div class="chord-chips">
+            @for (chord of uniqueChords; track $index) {
+            <mat-chip class="chord-chip">{{ chord }}</mat-chip>
+            }
+        </div>
+    </div>
+
+    <div class="lyrics-section container">
+        <app-chord-display [lyrics]="transposedLyrics" />
+    </div>
+</div>
+}

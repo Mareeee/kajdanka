@@ -1,0 +1,23 @@
+@use '@angular/material' as mat;
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: #fafafa;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.mat-mdc-paginator {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 24px;
+}

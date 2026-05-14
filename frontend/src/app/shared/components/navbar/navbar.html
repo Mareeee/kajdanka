@@ -1,0 +1,25 @@
+<mat-toolbar class="navbar-glass">
+    <div class="nav-container">
+        <a routerLink="/" class="brand-logo">
+            <div class="icon-sphere">
+                <mat-icon>music_note</mat-icon>
+            </div>
+            <span class="logo-text">Kajdanka</span>
+        </a>
+
+        <span class="spacer"></span>
+
+        <nav class="nav-menu">
+            <a mat-button routerLink="/songs" routerLinkActive="active-link">
+                Pesme
+            </a>
+        </nav>
+
+        <div class="nav-actions">
+            <button mat-flat-button routerLink="/login" class="login-action">
+                <mat-icon>person</mat-icon>
+                <span>Prijavi se</span>
+            </button>
+        </div>
+    </div>
+</mat-toolbar>

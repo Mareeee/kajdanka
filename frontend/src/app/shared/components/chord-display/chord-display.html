@@ -1,0 +1,12 @@
+<div class="lyrics-container">
+    @for (line of parsedLines; track $index) {
+    <div class="lyrics-line">
+        @for (segment of line; track $index) {
+        <span class="segment">
+            <span class="chord">{{ segment.chord ?? '' }}</span>
+            <span class="text">{{ segment.text || ' ' }}</span>
+        </span>
+        }
+    </div>
+    }
+</div>

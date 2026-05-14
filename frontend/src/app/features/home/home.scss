@@ -1,0 +1,30 @@
+@use "sass:color";
+
+$primary-blue: #2563eb;
+$deep-navy: #1e293b;
+$glass-bg: rgba(255, 255, 255, 0.7);
+$white-pure: #ffffff;
+
+.top {
+    position: relative;
+    padding: 200px 0 100px 0;
+    overflow: hidden;
+    background-color: #f8fafc;
+}
+
+.featured-section {
+    padding: 80px 0;
+    background: #ffffff;
+}
+
+.songs-grid-home {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}

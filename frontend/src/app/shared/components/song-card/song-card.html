@@ -1,0 +1,43 @@
+<mat-card class="glass-card" [routerLink]="['/songs', song.id]">
+    <div class="card-glow"></div>
+    <mat-card-header>
+        <mat-card-title>{{ song.title }}</mat-card-title>
+        <mat-card-subtitle>{{ song.artist }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+        <div class="meta-tags">
+            @if (song.genre) {
+            <span class="genre-tag">{{ song.genre }}</span>
+            }
+            @if (song.keySignature) {
+            <div class="music-info">
+                <mat-icon>music_note</mat-icon>
+                <span>{{ song.keySignature }}</span>
+                @if (song.capo > 0) {
+                <span class="capo-info">Capo {{ song.capo }}</span>
+                }
+            </div>
+            }
+        </div>
+    </mat-card-content>
+
+    <mat-card-footer>
+        <div class="card-stats">
+            <div class="stat-group">
+                <span class="stat-item">
+                    <mat-icon>favorite_border</mat-icon>
+                    {{ song.likeCount }}
+                </span>
+                <span class="stat-item">
+                    <mat-icon>visibility</mat-icon>
+                    {{ song.viewCount }}
+                </span>
+            </div>
+            <div class="user-info">
+                <mat-icon>account_circle</mat-icon>
+                {{ song.authorUsername }}
+            </div>
+        </div>
+    </mat-card-footer>
+</mat-card>

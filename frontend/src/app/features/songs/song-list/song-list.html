@@ -1,0 +1,23 @@
+<div class="page-header">
+    <div class="container header-content">
+        <div class="title-section">
+            <h1>Sve pesme</h1>
+        </div>
+    </div>
+</div>
+
+<div class="container main-content">
+    @if (loading) {
+    <div class="center-state">
+        <mat-spinner diameter="40"></mat-spinner>
+    </div>
+    }
+
+    @if (!loading && songs.length > 0) {
+    <div class="songs-grid">
+        @for (song of songs; track song.id) {
+        <app-song-card [song]="song" />
+        }
+    </div>
+    }
+</div>

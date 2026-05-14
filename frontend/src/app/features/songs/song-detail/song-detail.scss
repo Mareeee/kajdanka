@@ -1,0 +1,119 @@
+.center {
+    display: flex;
+    justify-content: center;
+    padding: 64px;
+}
+
+.song-header {
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    padding: 100px 0px 24px 0px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.song-header h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin: 12px 0 4px;
+}
+
+.song-header h2 {
+    font-size: 1.3rem;
+    font-weight: 400;
+    opacity: 0.85;
+    margin: 0 0 16px;
+}
+
+.song-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.song-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+    opacity: 0.85;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    mat-icon {
+        font-size: 16px;
+        height: 16px;
+        width: 16px;
+    }
+}
+
+.transpose-bar {
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 24px;
+}
+
+.transpose-bar .container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.transpose-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+}
+
+.transpose-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.semitone-display {
+    font-weight: 700;
+    font-size: 1.1rem;
+    min-width: 32px;
+    text-align: center;
+    color: #1565c0;
+}
+
+.chords-legend {
+    margin-top: 1em;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 5px;
+}
+
+.chord-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chord-chip {
+    background: #1565c0 !important;
+    color: white !important;
+    font-weight: 700;
+}
+
+.lyrics-section {
+    padding: 32px 24px;
+    overflow-x: auto;
+}

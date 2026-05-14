@@ -1,0 +1,21 @@
+<section class="top">
+
+</section>
+
+<section class="featured-section">
+    <div class="container">
+        @if (loading) {
+        <div class="center-state">
+            <mat-spinner diameter="40"></mat-spinner>
+        </div>
+        }
+
+        @if (!loading) {
+        <div class="songs-grid-home">
+            @for (song of featuredSongs; track song.id) {
+            <app-song-card [song]="song" />
+            }
+        </div>
+        }
+    </div>
+</section>

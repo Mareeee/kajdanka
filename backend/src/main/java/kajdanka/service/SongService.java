@@ -1,0 +1,112 @@
+package kajdanka.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import kajdanka.dto.request.CreateSongRequest;
+import kajdanka.dto.response.SongDetailDto;
+import kajdanka.dto.response.SongSummaryDto;
+import kajdanka.entity.Song;
+import kajdanka.repository.SongRepository;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class SongService {
+
+    private final SongRepository songRepository;
+
+    public Page<SongSummaryDto> searchSongs(
+            String search,
+            String genre,
+            String artist,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return songRepository.search(search, genre, artist, pageable)
+                .map(this::toSummaryDto);
+    }
+
+    @Transactional
+    public SongDetailDto getSongById(Long id) {
+        Song song = songRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Pesma nije pronađena: " + id));
+
+        songRepository.incrementViewCount(id);
+
+        return toDetailDto(song);
+    }
+
+    public List<SongSummaryDto> getFeaturedSongs(int count) {
+        return songRepository.findFeatured(PageRequest.of(0, count))
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+    public List<String> getAllGenres() {
+        return songRepository.findAllGenres();
+    }
+
+    @Transactional
+    public SongSummaryDto createSong(CreateSongRequest request) {
+        Song song = Song.builder()
+                .title(request.title())
+                .artist(request.artist())
+                .genre(request.genre())
+                .keySignature(request.keySignature())
+                .capo(request.capo())
+                .lyrics(request.lyrics())
+                .build();
+
+        return toSummaryDto(songRepository.save(song));
+    }
+
+    private SongSummaryDto toSummaryDto(Song song) {
+        return new SongSummaryDto(
+                song.getId(),
+                song.getTitle(),
+                song.getArtist(),
+                song.getGenre(),
+                song.getKeySignature(),
+                song.getCapo(),
+                song.getLikeCount(),
+                song.getViewCount(),
+                song.getUser() != null ? song.getUser().getUsername() : "Anonimno",
+                song.getCreatedAt()
+        );
+    }
+
+    private SongDetailDto toDetailDto(Song song) {
+        List<SongDetailDto.CommentDto> comments = song.getComments().stream()
+                .map(c -> new SongDetailDto.CommentDto(
+                        c.getId(),
+                        c.getComment(),
+                        c.getUser() != null ? c.getUser().getUsername() : "Anonimno",
+                        c.getCreatedAt()
+                ))
+                .toList();
+
+        return new SongDetailDto(
+                song.getId(),
+                song.getTitle(),
+                song.getArtist(),
+                song.getGenre(),
+                song.getKeySignature(),
+                song.getCapo(),
+                song.getLyrics(),
+                song.getLikeCount(),
+                song.getViewCount(),
+                song.getUser() != null ? song.getUser().getUsername() : "Anonimno",
+                song.getCreatedAt(),
+                comments
+        );
+    }
+}
