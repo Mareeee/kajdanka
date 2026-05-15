@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { SongService } from '../../../core/services/song.service';
 import { SongDetail } from '../../../core/models/song.model';
 import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
-import { transposeLyrics } from '../../../core/utils/transpose.util';
+import { transposeLyrics, extractUniqueChords } from '../../../core/utils/transpose.util';
 
 @Component({
   selector: 'app-song-detail',
@@ -58,9 +58,7 @@ export class SongDetailComponent implements OnInit {
 
   get uniqueChords(): string[] {
     if (!this.transposedLyrics) return [];
-    const matches = this.transposedLyrics.match(/\[([^\]]+)\]/g) ?? [];
-    const unique = [...new Set(matches.map(m => m.replace(/[\[\]]/g, '')))];
-    return unique;
+    return extractUniqueChords(this.transposedLyrics);
   }
 
   changeSemitones(delta: number): void {

@@ -3,10 +3,17 @@
     <div class="lyrics-line">
         @for (segment of line; track $index) {
         <span class="segment">
-            <span class="chord">{{ segment.chord ?? '' }}</span>
+            @if (segment.chord) {
+            <span class="chord" (mouseenter)="onChordHover($event, segment.chord)" (mouseleave)="onChordLeave()">{{
+                segment.chord }}</span>
+            } @else {
+            <span class="chord"></span>
+            }
             <span class="text">{{ segment.text || ' ' }}</span>
         </span>
         }
     </div>
     }
 </div>
+
+<app-chord-tooltip [chord]="hoveredChord" [x]="tooltipX" [y]="tooltipY" [visible]="tooltipVisible" />
