@@ -1,0 +1,15 @@
+.chord-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    transform: translate(-50%, calc(-100% - 12px));
+
+    canvas {
+        display: block;
+    }
+}
