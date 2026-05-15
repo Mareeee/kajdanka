@@ -1,5 +1,6 @@
 <mat-toolbar class="navbar-glass">
     <div class="nav-container">
+
         <a routerLink="/" class="brand-logo">
             <div class="icon-sphere">
                 <mat-icon>music_note</mat-icon>
@@ -15,11 +16,23 @@
             </a>
         </nav>
 
-        <div class="nav-actions">
-            <button mat-flat-button routerLink="/login" class="login-action">
+        <div class="nav-menu">
+
+            @if (authService.isLoggedIn()) {
+            <button mat-button routerLink="/profile">
                 <mat-icon>person</mat-icon>
-                <span>Prijavi se</span>
+                {{ authService.currentUser()?.username }}
             </button>
+            }
+
+            @if (!authService.isLoggedIn()) {
+            <a mat-button routerLink="/login">Prijavi se</a>
+            <button mat-flat-button routerLink="/register">
+                <mat-icon>person_add</mat-icon>
+                <span>Registruj se</span>
+            </button>
+            }
+
         </div>
     </div>
 </mat-toolbar>

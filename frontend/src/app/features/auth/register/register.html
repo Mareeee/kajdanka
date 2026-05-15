@@ -1,0 +1,77 @@
+<div class="auth-page">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <mat-icon class="auth-icon">person_add</mat-icon>
+            <h1>Registracija</h1>
+            <p>Napravi nalog na Kajdanki</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Korisničko ime</mat-label>
+                <input matInput [formControl]="$any(form.get('username'))" placeholder="npr. gitarista123"
+                    autocomplete="username" />
+                <mat-icon matPrefix>person</mat-icon>
+                @if (getError('username')) {
+                <mat-error>{{ getError('username') }}</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" [formControl]="$any(form.get('email'))" autocomplete="email" />
+                <mat-icon matPrefix>email</mat-icon>
+                @if (getError('email')) {
+                <mat-error>{{ getError('email') }}</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Lozinka</mat-label>
+                <input matInput [type]="showPassword ? 'text' : 'password'" [formControl]="$any(form.get('password'))"
+                    autocomplete="new-password" />
+                <mat-icon matPrefix>lock</mat-icon>
+                <button mat-icon-button matSuffix type="button" (click)="showPassword = !showPassword">
+                    <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (getError('password')) {
+                <mat-error>{{ getError('password') }}</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Potvrdi lozinku</mat-label>
+                <input matInput [type]="showPassword ? 'text' : 'password'"
+                    [formControl]="$any(form.get('confirmPassword'))" autocomplete="new-password" />
+                <mat-icon matPrefix>lock_outline</mat-icon>
+                @if (passwordMismatch) {
+                <mat-error>Lozinke se ne podudaraju</mat-error>
+                }
+            </mat-form-field>
+
+            @if (serverError) {
+            <div class="server-error">
+                <mat-icon>error</mat-icon>
+                {{ serverError }}
+            </div>
+            }
+
+            <button mat-raised-button color="primary" type="submit" class="submit-btn" [disabled]="loading">
+                @if (loading) {
+                <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                } @else {
+                Registruj se
+                }
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            Već imaš nalog?
+            <a routerLink="/login">Prijavi se</a>
+        </div>
+
+    </div>
+</div>

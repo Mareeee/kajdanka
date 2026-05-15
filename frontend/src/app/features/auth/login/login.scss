@@ -1,0 +1,102 @@
+.auth-page {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+    padding: 24px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    .auth-icon {
+        font-size: 48px;
+        height: 48px;
+        width: 48px;
+        color: #1565c0;
+    }
+
+    h1 {
+        margin: 8px 0 4px;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1565c0;
+    }
+
+    p {
+        color: #757575;
+        margin: 0;
+    }
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.server-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+
+    mat-icon {
+        font-size: 18px;
+        height: 18px;
+        width: 18px;
+    }
+}
+
+.submit-btn {
+    width: 100%;
+    height: 48px;
+    font-size: 1rem;
+    margin-top: 8px;
+    border-radius: 8px !important;
+}
+
+.btn-spinner {
+    display: inline-block;
+
+    ::ng-deep circle {
+        stroke: white;
+    }
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 24px;
+    color: #757575;
+    font-size: 0.95rem;
+
+    a {
+        color: #1565c0;
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 4px;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
