@@ -1,0 +1,58 @@
+<div class="auth-page">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <mat-icon class="auth-icon">music_note</mat-icon>
+            <h1>Kajdanka</h1>
+            <p>Prijavi se na svoj nalog</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" [formControl]="$any(form.get('email'))" placeholder="ime@email.com"
+                    autocomplete="email" />
+                <mat-icon matPrefix>email</mat-icon>
+                @if (getError('email')) {
+                <mat-error>{{ getError('email') }}</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Lozinka</mat-label>
+                <input matInput [type]="showPassword ? 'text' : 'password'" [formControl]="$any(form.get('password'))"
+                    autocomplete="current-password" />
+                <mat-icon matPrefix>lock</mat-icon>
+                <button mat-icon-button matSuffix type="button" (click)="showPassword = !showPassword">
+                    <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (getError('password')) {
+                <mat-error>{{ getError('password') }}</mat-error>
+                }
+            </mat-form-field>
+
+            @if (serverError) {
+            <div class="server-error">
+                <mat-icon>error</mat-icon>
+                {{ serverError }}
+            </div>
+            }
+
+            <button mat-raised-button color="primary" type="submit" class="submit-btn" [disabled]="loading">
+                @if (loading) {
+                <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                } @else {
+                Prijavi se
+                }
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            Nemaš nalog?
+            <a routerLink="/register">Registruj se</a>
+        </div>
+
+    </div>
+</div>

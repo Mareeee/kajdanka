@@ -1,0 +1,67 @@
+<div class="profile-page">
+
+    @if (loading) {
+    <div class="center">
+        <mat-spinner diameter="48" />
+    </div>
+    }
+
+    @if (!loading && profile) {
+
+    <div class="profile-header">
+        <div class="container">
+
+            <div class="avatar">{{ avatarInitials }}</div>
+
+            <div class="profile-info">
+                <h1>{{ profile.username }}</h1>
+                <p class="member-since">
+                    <mat-icon>calendar_today</mat-icon>
+                    Član od {{ formatMemberSince(profile.createdAt) }}
+                </p>
+                <span class="role-badge" [class]="'role-' + profile.role.toLowerCase()">
+                    {{ profile.role }}
+                </span>
+            </div>
+
+            <button mat-stroked-button class="logout-btn" (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                Odjavi se
+            </button>
+
+        </div>
+    </div>
+
+    <div class="profile-content container">
+
+        <h2>
+            <mat-icon>library_music</mat-icon>
+            Moje pesme
+            <span class="count">{{ profile.songs.length }}</span>
+        </h2>
+
+        <mat-divider />
+
+        @if (profile.songs.length === 0) {
+        <div class="empty-songs">
+            <mat-icon>music_off</mat-icon>
+            <p>Još nisi dodao nijednu pesmu.</p>
+            <button mat-raised-button color="primary" routerLink="/songs">
+                Istraži pesme
+            </button>
+        </div>
+        }
+
+        @if (profile.songs.length > 0) {
+        <div class="songs-grid">
+            @for (song of profile.songs; track song.id) {
+            <app-song-card [song]="song" />
+            }
+        </div>
+        }
+
+    </div>
+
+    }
+
+</div>

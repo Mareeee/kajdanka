@@ -3,7 +3,6 @@
 $primary-blue: #2563eb;
 $deep-navy: #1e293b;
 $glass-white: rgba(255, 255, 255, 0.75);
-$soft-grey: #f1f5f9;
 
 .navbar-glass {
     position: fixed;
@@ -66,15 +65,18 @@ $soft-grey: #f1f5f9;
 
 .nav-menu {
     display: flex;
-    gap: 12px;
-    margin-right: 20px;
 
-    a {
+    a,
+    button {
+        display: flex;
+        align-items: center;
         color: $deep-navy;
         font-weight: 500;
         border-radius: 12px;
         padding: 0 16px;
         transition: all 0.25s ease;
+        border: none;
+        cursor: pointer;
 
         &:hover {
             background: rgba($primary-blue, 0.06);
@@ -85,29 +87,5 @@ $soft-grey: #f1f5f9;
     .active-link {
         background: rgba($primary-blue, 0.1) !important;
         color: $primary-blue !important;
-        font-weight: 600;
-    }
-}
-
-.login-action {
-    background: $primary-blue !important;
-    color: white !important;
-    border-radius: 14px !important;
-    padding: 0 24px !important;
-    height: 44px !important;
-    font-weight: 600 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-
-    &:hover {
-        transform: scale(1.03);
-        box-shadow: 0 6px 20px rgba($primary-blue, 0.3);
-        background: color.adjust($primary-blue, $lightness: -5%) !important;
-    }
-
-    mat-icon {
-        margin-right: 6px;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
     }
 }
