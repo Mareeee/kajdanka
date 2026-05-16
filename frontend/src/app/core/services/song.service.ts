@@ -6,8 +6,6 @@ import { Page, SongDetail, SongSummary } from '../models/song.model';
 @Injectable({ providedIn: 'root' })
 export class SongService {
 
-    private readonly API = 'http://localhost:8080/api/songs';
-
     constructor(private http: HttpClient) { }
 
     searchSongs(params: {
@@ -24,20 +22,20 @@ export class SongService {
             .set('page', params.page ?? 0)
             .set('size', params.size ?? 12);
 
-        return this.http.get<Page<SongSummary>>(this.API, { params: httpParams });
+        return this.http.get<Page<SongSummary>>('/songs', { params: httpParams });
     }
 
     getSong(id: number): Observable<SongDetail> {
-        return this.http.get<SongDetail>(`${this.API}/${id}`);
+        return this.http.get<SongDetail>(`/songs/${id}`);
     }
 
     getFeatured(count = 8): Observable<SongSummary[]> {
-        return this.http.get<SongSummary[]>(`${this.API}/featured`, {
+        return this.http.get<SongSummary[]>(`/songs/featured`, {
             params: { count }
         });
     }
 
     getGenres(): Observable<string[]> {
-        return this.http.get<string[]>(`${this.API}/genres`);
+        return this.http.get<string[]>(`/songs/genres`);
     }
 }

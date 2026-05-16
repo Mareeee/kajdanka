@@ -5,11 +5,11 @@ import jakarta.validation.constraints.Size;
 
 public record CreateSongRequest(
 
-        @NotBlank(message = "Naslov je obavezan")
+        @NotBlank(message = "Title required")
         @Size(max = 200)
         String title,
 
-        @NotBlank(message = "Izvođač je obavezan")
+        @NotBlank(message = "Artist required")
         @Size(max = 200)
         String artist,
 

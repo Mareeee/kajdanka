@@ -1,25 +1,14 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SongSummary } from '../models/song.model';
-
-export interface UserProfile {
-    id: number;
-    username: string;
-    email: string;
-    role: string;
-    createdAt: string;
-    songs: SongSummary[];
-}
+import { User } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
 
-    private readonly API = 'http://localhost:8080/api/users';
+    private readonly http = inject(HttpClient);
 
-    constructor(private http: HttpClient) { }
-
-    getMyProfile(): Observable<UserProfile> {
-        return this.http.get<UserProfile>(`${this.API}/me`);
+    getMyProfile(): Observable<User> {
+        return this.http.get<User>(`/users/me`);
     }
 }

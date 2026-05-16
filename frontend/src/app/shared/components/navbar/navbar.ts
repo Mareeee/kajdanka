@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,9 +12,10 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./navbar.scss'],
   imports: [RouterModule, MatToolbarModule, MatButtonModule, MatIconModule],
 })
+
 export class NavbarComponent {
 
-  constructor(public authService: AuthService) { }
+  protected readonly authService = inject(AuthService)
 
   logout(): void {
     this.authService.logout();

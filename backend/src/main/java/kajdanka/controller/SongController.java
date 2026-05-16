@@ -37,7 +37,7 @@ public class SongController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Detalji pesme sa akordima")
+    @Operation(summary = "Song details")
     public ResponseEntity<SongDetailDto> getSong(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(songService.getSongById(id));
@@ -47,7 +47,7 @@ public class SongController {
     }
 
     @GetMapping("/featured")
-    @Operation(summary = "Istaknute pesme za početnu stranu")
+    @Operation(summary = "Featured songs")
     public List<SongSummaryDto> getFeatured(
             @RequestParam(defaultValue = "8") int count
     ) {
@@ -55,14 +55,14 @@ public class SongController {
     }
 
     @GetMapping("/genres")
-    @Operation(summary = "Lista svih žanrova")
+    @Operation(summary = "Genres list")
     public List<String> getGenres() {
         return songService.getAllGenres();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Dodaj novu pesmu")
+    @Operation(summary = "Add new song")
     public SongSummaryDto createSong(@Valid @RequestBody CreateSongRequest request) {
         return songService.createSong(request);
     }

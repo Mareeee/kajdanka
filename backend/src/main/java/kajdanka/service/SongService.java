@@ -37,7 +37,7 @@ public class SongService {
     @Transactional
     public SongDetailDto getSongById(Long id) {
         Song song = songRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Pesma nije pronađena: " + id));
+                .orElseThrow(() -> new NoSuchElementException("Song not found: " + id));
 
         songRepository.incrementViewCount(id);
 
@@ -79,7 +79,7 @@ public class SongService {
                 song.getCapo(),
                 song.getLikeCount(),
                 song.getViewCount(),
-                song.getUser() != null ? song.getUser().getUsername() : "Anonimno",
+                song.getUser() != null ? song.getUser().getUsername() : "Anonymous",
                 song.getCreatedAt()
         );
     }
@@ -89,7 +89,7 @@ public class SongService {
                 .map(c -> new SongDetailDto.CommentDto(
                         c.getId(),
                         c.getComment(),
-                        c.getUser() != null ? c.getUser().getUsername() : "Anonimno",
+                        c.getUser() != null ? c.getUser().getUsername() : "Anonymous",
                         c.getCreatedAt()
                 ))
                 .toList();
@@ -104,7 +104,7 @@ public class SongService {
                 song.getLyrics(),
                 song.getLikeCount(),
                 song.getViewCount(),
-                song.getUser() != null ? song.getUser().getUsername() : "Anonimno",
+                song.getUser() != null ? song.getUser().getUsername() : "Anonymous",
                 song.getCreatedAt(),
                 comments
         );

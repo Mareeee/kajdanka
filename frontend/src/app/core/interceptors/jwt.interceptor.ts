@@ -18,7 +18,7 @@ export const jwtInterceptor: HttpInterceptorFn = (
     return next(authReq).pipe(
         catchError((error: HttpErrorResponse) => {
 
-            if (error.status === 401) {
+            if (error.status === 401 || error.status === 403) {
 
                 return authService.refreshToken().pipe(
                     switchMap(response => {

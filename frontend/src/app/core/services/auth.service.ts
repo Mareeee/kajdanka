@@ -12,7 +12,6 @@ const USER_KEY = 'user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    private readonly API = 'http://localhost:8080/api/auth';
     private isBrowser: boolean;
 
     private _currentUser = signal<AuthUser | null>(null);
@@ -37,13 +36,11 @@ export class AuthService {
     }
 
     register(request: RegisterRequest): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.API}/register`, request).pipe(
-            tap(response => this.saveSession(response))
-        );
+        return this.http.post<AuthResponse>(`/auth/register`, request)
     }
 
     login(request: LoginRequest): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.API}/login`, request).pipe(
+        return this.http.post<AuthResponse>(`/auth/login`, request).pipe(
             tap(response => this.saveSession(response))
         );
     }
@@ -52,7 +49,7 @@ export class AuthService {
         if (!this.isBrowser) return of();
 
         const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-        return this.http.post<AuthResponse>(`${this.API}/refresh`, { refreshToken }).pipe(
+        return this.http.post<AuthResponse>(`/auth/refresh`, { refreshToken }).pipe(
             tap(response => this.saveSession(response))
         );
     }
@@ -61,7 +58,7 @@ export class AuthService {
         if (this.isBrowser) {
             const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
             if (refreshToken) {
-                this.http.post(`${this.API}/logout`, { refreshToken }).subscribe({
+                this.http.post(`/auth/logout`, { refreshToken }).subscribe({
                     error: () => { }
                 });
             }
@@ -95,5 +92,9 @@ export class AuthService {
         } catch (e) {
             return null;
         }
+    }
+
+    handleVerificationResponse(response: AuthResponse): void {
+        this.saveSession(response);
     }
 }
