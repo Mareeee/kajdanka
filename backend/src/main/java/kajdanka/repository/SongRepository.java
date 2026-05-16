@@ -1,5 +1,6 @@
 package kajdanka.repository;
 
+import kajdanka.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,4 +44,6 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     @Modifying
     @Query("UPDATE Song s SET s.viewCount = s.viewCount + 1 WHERE s.id = :id")
     void incrementViewCount(@Param("id") Long id);
+
+    List<Song> findByUserOrderByCreatedAtDesc(User user);
 }

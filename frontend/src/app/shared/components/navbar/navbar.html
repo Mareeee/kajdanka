@@ -19,6 +19,9 @@
         <div class="nav-menu">
 
             @if (authService.isLoggedIn()) {
+            <a mat-button routerLink="/songs/new" routerLinkActive="active-link">
+                <mat-icon>add</mat-icon> Dodaj pesmu
+            </a>
             <button mat-button routerLink="/profile">
                 <mat-icon>person</mat-icon>
                 {{ authService.currentUser()?.username }}

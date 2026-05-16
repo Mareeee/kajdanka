@@ -43,6 +43,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(SecurityException e) {
+        return error(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
     private ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("error", message));
     }

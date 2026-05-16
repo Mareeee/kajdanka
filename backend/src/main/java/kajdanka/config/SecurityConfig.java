@@ -44,6 +44,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/genres").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/featured").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/genres").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs").permitAll()
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

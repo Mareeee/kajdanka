@@ -1,0 +1,67 @@
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate class="song-form">
+
+    <div class="form-row">
+
+        <mat-form-field appearance="outline" class="flex-2">
+            <mat-label>Naziv pesme</mat-label>
+            <input matInput [formControl]="$any(form.get('title'))" placeholder="npr. Pile" />
+            @if (getError('title')) { <mat-error>{{ getError('title') }}</mat-error> }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="flex-2">
+            <mat-label>Izvođač</mat-label>
+            <input matInput [formControl]="$any(form.get('artist'))" placeholder="npr. Ceca" />
+            @if (getError('artist')) { <mat-error>{{ getError('artist') }}</mat-error> }
+        </mat-form-field>
+
+    </div>
+
+    <div class="form-row">
+
+        <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Žanr</mat-label>
+            <mat-select [formControl]="$any(form.get('genre'))">
+                <mat-option value="">Bez žanra</mat-option>
+                @for (g of genres; track g) {
+                <mat-option [value]="g">{{ g }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Tonalitet</mat-label>
+            <mat-select [formControl]="$any(form.get('keySignature'))">
+                <mat-option value="">Bez tonaliteta</mat-option>
+                @for (k of keys; track k) {
+                <mat-option [value]="k">{{ k }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="capo-field">
+            <mat-label>Kapo</mat-label>
+            <input matInput type="number" [formControl]="$any(form.get('capo'))" min="0" max="11" />
+            @if (getError('capo')) { <mat-error>{{ getError('capo') }}</mat-error> }
+        </mat-form-field>
+
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tekst sa akordima</mat-label>
+        <textarea matInput [formControl]="$any(form.get('lyrics'))" rows="16"></textarea>
+    </mat-form-field>
+
+    <div class="form-actions">
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+            @if (loading) {
+            <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+            } @else {
+            <mat-icon>save</mat-icon>
+            }
+            @if (!loading) {
+            {{ submitLabel }}
+            }
+        </button>
+    </div>
+
+</form>

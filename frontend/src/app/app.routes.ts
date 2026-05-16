@@ -14,9 +14,21 @@ export const routes: Routes = [
             import('./features/songs/song-list/song-list').then(m => m.SongListComponent)
     },
     {
+        path: 'songs/new',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/songs/song-create/song-create').then(m => m.SongCreateComponent)
+    },
+    {
         path: 'songs/:id',
         loadComponent: () =>
             import('./features/songs/song-detail/song-detail').then(m => m.SongDetailComponent)
+    },
+    {
+        path: 'songs/:id/edit',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/songs/song-edit/song-edit').then(m => m.SongEditComponent)
     },
     {
         path: 'login',

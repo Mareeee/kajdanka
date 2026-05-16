@@ -1,0 +1,21 @@
+<div class="page-header">
+    <div class="container">
+        <div class="header-row">
+            <mat-icon>edit</mat-icon>
+            <h1>Izmeni pesmu</h1>
+        </div>
+    </div>
+</div>
+
+<div class="container form-container">
+
+    @if (loadingPage) {
+    <div class="center"><mat-spinner diameter="48" /></div>
+    }
+
+    @if (!loadingPage && song) {
+    <app-song-form [initialData]="song" submitLabel="Sačuvaj izmene" [loading]="loadingSave"
+        (formSubmit)="onUpdate($event)" />
+    }
+
+</div>

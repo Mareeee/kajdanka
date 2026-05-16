@@ -1,0 +1,83 @@
+.song-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-row {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+
+    mat-form-field {
+        min-width: 200px;
+    }
+}
+
+mat-option {
+    background-color: white !important;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.flex-2 {
+    flex: 2;
+}
+
+.capo-field {
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.lyrics-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #e3f2fd;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    color: #1565c0;
+
+    mat-icon {
+        font-size: 18px;
+        height: 18px;
+        width: 18px;
+        flex-shrink: 0;
+    }
+
+    code {
+        background: rgba(21, 101, 192, 0.12);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+    }
+}
+
+.lyrics-textarea {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-spinner {
+    display: inline-block;
+
+    ::ng-deep circle {
+        stroke: white;
+    }
+}
