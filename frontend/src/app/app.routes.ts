@@ -37,6 +37,11 @@ export const routes: Routes = [
             import('./features/profile/profile').then(m => m.ProfileComponent)
     },
     {
+        path: 'verify-email',
+        loadComponent: () =>
+            import('./features/auth/verify-email/verify-email').then(m => m.VerifyEmailComponent)
+    },
+    {
         path: '**',
         redirectTo: ''
     }

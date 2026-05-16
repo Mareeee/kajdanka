@@ -33,6 +33,10 @@ public class User {
     @Builder.Default
     private Role role = Role.USER;
 
+    @Column(name = "is_enabled")
+    @Builder.Default
+    private boolean enabled = false;
+
     @Column(name = "is_premium")
     @Builder.Default
     private boolean isPremium = false;

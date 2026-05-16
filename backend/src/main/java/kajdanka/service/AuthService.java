@@ -4,9 +4,11 @@ import kajdanka.dto.request.LoginRequest;
 import kajdanka.dto.request.RefreshTokenRequest;
 import kajdanka.dto.request.RegisterRequest;
 import kajdanka.dto.response.AuthResponse;
+import kajdanka.entity.EmailVerificationToken;
 import kajdanka.entity.RefreshToken;
 import kajdanka.entity.Role;
 import kajdanka.entity.User;
+import kajdanka.repository.EmailVerificationTokenRepository;
 import kajdanka.repository.RefreshTokenRepository;
 import kajdanka.repository.UserRepository;
 import kajdanka.security.JwtService;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -33,6 +36,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final EmailVerificationTokenRepository verificationTokenRepository;
+    private final EmailService emailService;
 
     @Value("${app.jwt.access-token-expiration}")
     private long accessTokenExpiration;
@@ -40,26 +45,32 @@ public class AuthService {
     @Value("${app.jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    @Value("${app.email.verification-expiration:86400000}")
+    private long verificationExpiration;
 
-        if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Username taken: " + request.username());
-        }
-        if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email taken: " + request.email());
-        }
+    @Transactional
+    public Map<String, String> register(RegisterRequest request) {
 
         User user = User.builder()
                 .username(request.username())
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .role(Role.USER)
+                .enabled(false)
                 .build();
 
         userRepository.save(user);
 
-        return buildAuthResponse(user);
+        String tokenStr = UUID.randomUUID().toString();
+        EmailVerificationToken token = EmailVerificationToken.builder()
+                .token(tokenStr)
+                .user(user)
+                .expiresAt(Instant.now().plusMillis(verificationExpiration))
+                .build();
+        verificationTokenRepository.save(token);
+        emailService.sendVerificationEmail(user, tokenStr);
+
+        return Map.of("message", "Registration success! Check your email to activate account.");
     }
 
     @Transactional
@@ -70,6 +81,10 @@ public class AuthService {
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
+
+        if (!user.isEnabled()) {
+            throw new IllegalStateException("Account not activated. Check mail.");
+        }
 
         refreshTokenRepository.revokeAllByUser(user);
 
@@ -124,5 +139,25 @@ public class AuthService {
                         user.getRole().name()
                 )
         );
+    }
+
+    @Transactional
+    public AuthResponse verifyEmail(String tokenStr) {
+        EmailVerificationToken token = verificationTokenRepository
+                .findByToken(tokenStr)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+
+        if (!token.isValid()) {
+            throw new IllegalArgumentException("Token expired or has already been used");
+        }
+
+        User user = token.getUser();
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        token.setUsed(true);
+        verificationTokenRepository.save(token);
+
+        return buildAuthResponse(user);
     }
 }

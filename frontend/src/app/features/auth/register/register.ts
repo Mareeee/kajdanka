@@ -62,8 +62,12 @@ export class RegisterComponent {
     const { username, email, password } = this.form.getRawValue();
     this.authService.register({ username: username!, email: email!, password: password! }).subscribe({
       next: () => {
-        this.snackBar.open('Nalog uspešno kreiran! Dobrodošli!', 'Zatvori', { duration: 3000 });
-        this.router.navigate(['/']);
+        this.snackBar.open(
+          'Registracija uspešna! Proveri email da aktiviraš nalog.',
+          'OK',
+          { duration: 6000 }
+        );
+        this.router.navigate(['/login']);
       },
       error: (err: HttpErrorResponse) => {
         this.loading = false;

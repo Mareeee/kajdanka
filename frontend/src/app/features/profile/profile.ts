@@ -5,9 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { UserService, UserProfile } from '../../core/services/user.service';
+import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SongCardComponent } from '../../shared/components/song-card/song-card';
+import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-profile',
@@ -22,7 +23,7 @@ import { SongCardComponent } from '../../shared/components/song-card/song-card';
 })
 export class ProfileComponent implements OnInit {
 
-  profile: UserProfile | null = null;
+  profile: User | null = null;
   loading = true;
 
   constructor(

@@ -26,7 +26,7 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Registration")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
+    public Map<String, String> register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
     }
 
@@ -49,5 +49,11 @@ public class AuthController {
     ) {
         authService.logout(request.refreshToken());
         return ResponseEntity.ok(Map.of("message", "Logout successful"));
+    }
+
+    @GetMapping("/verify-email")
+    @Operation(summary = "Verify email address")
+    public AuthResponse verifyEmail(@RequestParam String token) {
+        return authService.verifyEmail(token);
     }
 }
