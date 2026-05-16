@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -12,6 +12,8 @@ import { SongService } from '../../../core/services/song.service';
 import { SongDetail } from '../../../core/models/song.model';
 import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
 import { transposeLyrics, extractUniqueChords } from '../../../core/utils/transpose.util';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-song-detail',
@@ -30,10 +32,12 @@ export class SongDetailComponent implements OnInit {
   loading = true;
   semitones = 0;
 
-  constructor(
-    private route: ActivatedRoute,
-    private songService: SongService
-  ) { }
+  private authService = inject(AuthService);
+  private songService = inject(SongService);
+  private snackBar = inject(MatSnackBar);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -67,5 +71,25 @@ export class SongDetailComponent implements OnInit {
 
   resetTranspose(): void {
     this.semitones = 0;
+  }
+
+  get isOwner(): boolean {
+    const username = this.authService.currentUser()?.username;
+    return !!username && username === this.song?.authorUsername;
+  }
+
+  confirmDelete(): void {
+    const ok = confirm(`Obrisati pesmu "${this.song?.title}"? Ova akcija je nepovratna.`);
+    if (!ok || !this.song) return;
+
+    this.songService.deleteSong(this.song.id).subscribe({
+      next: () => {
+        this.snackBar.open('Pesma obrisana.', 'Zatvori', { duration: 3000 });
+        this.router.navigate(['/songs']);
+      },
+      error: () => {
+        this.snackBar.open('Greška pri brisanju.', 'Zatvori', { duration: 3000 });
+      }
+    });
   }
 }

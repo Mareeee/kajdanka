@@ -1,0 +1,12 @@
+<div class="page-header">
+    <div class="container">
+        <div class="header-row">
+            <mat-icon>library_add</mat-icon>
+            <h1>Dodaj pesmu</h1>
+        </div>
+    </div>
+</div>
+
+<div class="container form-container">
+    <app-song-form submitLabel="Sačuvaj pesmu" [loading]="loading" (formSubmit)="onCreate($event)" />
+</div>

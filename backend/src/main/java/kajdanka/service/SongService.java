@@ -1,16 +1,21 @@
 package kajdanka.service;
 
+import kajdanka.dto.request.CreateSongRequest;
+import kajdanka.dto.request.UpdateSongRequest;
+import kajdanka.dto.response.SongDetailDto;
+import kajdanka.dto.response.SongSummaryDto;
+import kajdanka.entity.Role;
+import kajdanka.entity.Song;
+import kajdanka.entity.User;
+import kajdanka.repository.SongRepository;
+import kajdanka.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import kajdanka.dto.request.CreateSongRequest;
-import kajdanka.dto.response.SongDetailDto;
-import kajdanka.dto.response.SongSummaryDto;
-import kajdanka.entity.Song;
-import kajdanka.repository.SongRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,13 +26,10 @@ import java.util.NoSuchElementException;
 public class SongService {
 
     private final SongRepository songRepository;
+    private final UserRepository userRepository;
 
     public Page<SongSummaryDto> searchSongs(
-            String search,
-            String genre,
-            String artist,
-            int page,
-            int size
+            String search, String genre, String artist, int page, int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return songRepository.search(search, genre, artist, pageable)
@@ -36,11 +38,8 @@ public class SongService {
 
     @Transactional
     public SongDetailDto getSongById(Long id) {
-        Song song = songRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Song not found: " + id));
-
+        Song song = findSongOrThrow(id);
         songRepository.incrementViewCount(id);
-
         return toDetailDto(song);
     }
 
@@ -55,8 +54,18 @@ public class SongService {
         return songRepository.findAllGenres();
     }
 
+    public List<SongSummaryDto> getMySongs() {
+        User user = getLoggedInUser();
+        return songRepository.findByUserOrderByCreatedAtDesc(user)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
     @Transactional
     public SongSummaryDto createSong(CreateSongRequest request) {
+        User user = getLoggedInUser();
+
         Song song = Song.builder()
                 .title(request.title())
                 .artist(request.artist())
@@ -64,9 +73,55 @@ public class SongService {
                 .keySignature(request.keySignature())
                 .capo(request.capo())
                 .lyrics(request.lyrics())
+                .user(user)
                 .build();
 
         return toSummaryDto(songRepository.save(song));
+    }
+
+    @Transactional
+    public SongSummaryDto updateSong(Long id, UpdateSongRequest request) {
+        Song song = findSongOrThrow(id);
+        checkOwnership(song);
+
+        song.setTitle(request.title());
+        song.setArtist(request.artist());
+        song.setGenre(request.genre());
+        song.setKeySignature(request.keySignature());
+        song.setCapo(request.capo());
+        song.setLyrics(request.lyrics());
+
+        return toSummaryDto(song);
+    }
+
+    @Transactional
+    public void deleteSong(Long id) {
+        Song song = findSongOrThrow(id);
+        checkOwnership(song);
+        songRepository.delete(song);
+    }
+
+    private User getLoggedInUser() {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
+    }
+
+    private Song findSongOrThrow(Long id) {
+        return songRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Song not found: " + id));
+    }
+
+    private void checkOwnership(Song song) {
+        User user = getLoggedInUser();
+        boolean isOwner = song.getUser() != null && song.getUser().getId().equals(user.getId());
+        boolean isAdmin = user.getRole() == Role.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new SecurityException("You don't have permission for this action");
+        }
     }
 
     private SongSummaryDto toSummaryDto(Song song) {
