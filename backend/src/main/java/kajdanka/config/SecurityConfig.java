@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/songs/genres").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comments/{id}").permitAll()
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

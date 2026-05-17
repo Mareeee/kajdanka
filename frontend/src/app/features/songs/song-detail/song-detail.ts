@@ -9,12 +9,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { SongService } from '../../../core/services/song.service';
-import { SongDetail } from '../../../core/models/song.model';
+import { Song } from '../../../core/models/song.model';
 import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
 import { transposeLyrics, extractUniqueChords } from '../../../core/utils/transpose.util';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { LikeService } from '../../../core/services/like.service';
+import { CommentService } from '../../../core/services/comment.service';
+import { Comment } from '../../../core/models/comment.model';
 
 @Component({
   selector: 'app-song-detail',
@@ -29,14 +31,16 @@ import { LikeService } from '../../../core/services/like.service';
   ]
 })
 export class SongDetailComponent implements OnInit {
-  song: SongDetail | null = null;
+  song: Song | null = null;
   loading = true;
   semitones = 0;
   liked = false;
 
-  private authService = inject(AuthService);
+
+  protected authService = inject(AuthService);
   private songService = inject(SongService);
   private likeService = inject(LikeService);
+  private commentService = inject(CommentService);
   private snackBar = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
   private router = inject(Router);

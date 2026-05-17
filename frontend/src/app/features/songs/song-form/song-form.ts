@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
-import { SongSummary } from '../../../core/models/song.model';
+import { Song } from '../../../core/models/song.model';
 
 const GENRES = ['Rock', 'Pop', 'Folk', 'Blues', 'Jazz', 'Metal', 'Country', 'Klasika', 'Ostalo'];
 const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'Cm', 'Dm', 'Em', 'Am', 'Bm', 'Fm', 'Gm'];
@@ -25,11 +25,11 @@ const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', '
 })
 export class SongFormComponent implements OnInit {
 
-  @Input() initialData: Partial<SongSummary> | null = null;
+  @Input() initialData: Partial<Song> | null = null;
   @Input() loading = false;
   @Input() submitLabel = 'Sačuvaj';
 
-  @Output() formSubmit = new EventEmitter<SongSummary>();
+  @Output() formSubmit = new EventEmitter<Song>();
 
   readonly genres = GENRES;
   readonly keys = KEYS;
@@ -58,7 +58,7 @@ export class SongFormComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-    this.formSubmit.emit(this.form.getRawValue() as SongSummary);
+    this.formSubmit.emit(this.form.getRawValue() as Song);
   }
 
   getError(field: string): string {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Page, SongDetail, SongSummary } from '../models/song.model';
+import { Page, Song } from '../models/song.model';
 
 @Injectable({ providedIn: 'root' })
 export class SongService {
@@ -10,38 +10,38 @@ export class SongService {
 
     searchSongs(params: {
         search?: string; genre?: string; artist?: string; page?: number; size?: number;
-    }): Observable<Page<SongSummary>> {
+    }): Observable<Page<Song>> {
         const httpParams = new HttpParams()
             .set('search', params.search ?? '')
             .set('genre', params.genre ?? '')
             .set('artist', params.artist ?? '')
             .set('page', params.page ?? 0)
             .set('size', params.size ?? 12);
-        return this.http.get<Page<SongSummary>>('/songs', { params: httpParams });
+        return this.http.get<Page<Song>>('/songs', { params: httpParams });
     }
 
-    getSong(id: number): Observable<SongDetail> {
-        return this.http.get<SongDetail>(`/songs/${id}`);
+    getSong(id: number): Observable<Song> {
+        return this.http.get<Song>(`/songs/${id}`);
     }
 
-    getFeatured(count = 8): Observable<SongSummary[]> {
-        return this.http.get<SongSummary[]>(`/songs/featured`, { params: { count } });
+    getFeatured(count = 8): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/featured`, { params: { count } });
     }
 
     getGenres(): Observable<string[]> {
         return this.http.get<string[]>(`/songs/genres`);
     }
 
-    getMySongs(): Observable<SongSummary[]> {
-        return this.http.get<SongSummary[]>(`/songs/my`);
+    getMySongs(): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/my`);
     }
 
-    createSong(payload: SongSummary): Observable<SongSummary> {
-        return this.http.post<SongSummary>('/songs', payload);
+    createSong(payload: Song): Observable<Song> {
+        return this.http.post<Song>('/songs', payload);
     }
 
-    updateSong(id: number, payload: SongSummary): Observable<SongSummary> {
-        return this.http.put<SongSummary>(`/songs/${id}`, payload);
+    updateSong(id: number, payload: Song): Observable<Song> {
+        return this.http.put<Song>(`/songs/${id}`, payload);
     }
 
     deleteSong(id: number): Observable<void> {

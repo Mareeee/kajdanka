@@ -68,5 +68,27 @@
     <div class="lyrics-section container">
         <app-chord-display [lyrics]="transposedLyrics" />
     </div>
+
+    <div class="comment-section container">
+        @if (song.comments.length > 0) {
+        @for (comment of song.comments; track $index) {
+        <div class="comment-bundle">
+            <div class="username" [class.owner]="comment.username == song.authorUsername ? '.owner' : ''">
+                {{ comment.username }} {{ authService.currentUser()?.username == comment.username ? "(Vi)" : ""}}
+            </div>
+            <div class="comment">
+                {{ comment.comment }}
+            </div>
+            <div class="createdAt">
+                {{ comment.createdAt | date:'dd.MM.yyyy. HH:mm' }}
+            </div>
+        </div>
+        }
+        } @else {
+        <div class="comment-bundle">
+            <p>Još nema komentara.</p>
+        </div>
+        }
+    </div>
 </div>
 }

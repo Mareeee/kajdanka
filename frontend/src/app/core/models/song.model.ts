@@ -1,4 +1,6 @@
-export interface SongSummary {
+import { Comment } from "./comment.model";
+
+export interface Song {
     id: number;
     title: string;
     artist: string;
@@ -9,18 +11,8 @@ export interface SongSummary {
     viewCount: number;
     authorUsername: string;
     createdAt: string;
-}
-
-export interface SongDetail extends SongSummary {
     lyrics: string;
     comments: Comment[];
-}
-
-export interface Comment {
-    id: number;
-    comment: string;
-    username: string;
-    createdAt: string;
 }
 
 export interface ChordSegment {

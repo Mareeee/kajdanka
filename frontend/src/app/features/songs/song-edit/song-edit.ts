@@ -5,7 +5,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { SongService } from '../../../core/services/song.service';
-import { SongDetail, SongSummary } from '../../../core/models/song.model';
+import { Song } from '../../../core/models/song.model';
 import { SongFormComponent } from '../song-form/song-form';
 
 @Component({
@@ -17,7 +17,7 @@ import { SongFormComponent } from '../song-form/song-form';
 })
 export class SongEditComponent implements OnInit {
 
-    song: SongDetail | null = null;
+    song: Song | null = null;
     loadingPage = true;
     loadingSave = false;
 
@@ -41,7 +41,7 @@ export class SongEditComponent implements OnInit {
         });
     }
 
-    onUpdate(payload: SongSummary): void {
+    onUpdate(payload: Song): void {
         if (!this.song) return;
         this.loadingSave = true;
 

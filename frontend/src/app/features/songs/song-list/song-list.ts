@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SongService } from '../../../core/services/song.service';
-import { SongSummary } from '../../../core/models/song.model';
+import { Song } from '../../../core/models/song.model';
 import { SongCardComponent } from '../../../shared/components/song-card/song-card';
 
 @Component({
@@ -26,7 +26,7 @@ import { SongCardComponent } from '../../../shared/components/song-card/song-car
 })
 export class SongListComponent implements OnInit {
 
-  songs: SongSummary[] = [];
+  songs: Song[] = [];
   genres: string[] = [];
   loading = false;
   totalElements = 0;
