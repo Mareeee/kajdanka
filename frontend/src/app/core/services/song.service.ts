@@ -17,7 +17,7 @@ export class SongService {
             .set('artist', params.artist ?? '')
             .set('page', params.page ?? 0)
             .set('size', params.size ?? 12);
-        return this.http.get<Page<SongSummary>>('/songs/', { params: httpParams });
+        return this.http.get<Page<SongSummary>>('/songs', { params: httpParams });
     }
 
     getSong(id: number): Observable<SongDetail> {

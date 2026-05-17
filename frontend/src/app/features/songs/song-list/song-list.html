@@ -1,15 +1,65 @@
 <div class="page-header">
-    <div class="container header-content">
-        <div class="title-section">
+    <div class="container">
+
+        <div class="header-top">
+            @if (!activeSearch) {
             <h1>Sve pesme</h1>
+            }
+
+            <!-- @if (activeSearch) {
+            <div class="active-search-badge">
+                <mat-icon>search</mat-icon>
+                Rezultati za: <strong>{{ activeSearch }}</strong>
+                <button mat-icon-button (click)="clearFilters()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+            } -->
         </div>
+
+        <div class="filters-row">
+
+            <!-- <mat-form-field appearance="outline" class="genre-filter" subscriptSizing="dynamic">
+                <mat-label>Žanr</mat-label>
+                <mat-select [(value)]="selectedGenre" (selectionChange)="applyFilters()">
+                    <mat-option value="">Svi žanrovi</mat-option>
+                    @for (g of genres; track g) {
+                    <mat-option [value]="g">{{ g }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field> -->
+
+            <span class="results-count">
+                {{ totalElements }} {{ totalElements === 1 ? 'pesma' : 'pesama' }}
+            </span>
+
+            <!-- @if (selectedGenre) {
+            <button mat-stroked-button class="clear-btn" (click)="clearFilters()">
+                <mat-icon>filter_list_off</mat-icon>
+                Obriši filtere
+            </button>
+            } -->
+
+        </div>
+
     </div>
 </div>
 
 <div class="container main-content">
+
     @if (loading) {
     <div class="center-state">
-        <mat-spinner diameter="40"></mat-spinner>
+        <mat-spinner diameter="44"></mat-spinner>
+    </div>
+    }
+
+    @if (!loading && songs.length === 0) {
+    <div class="empty-state">
+        <mat-icon>search_off</mat-icon>
+        <p>Nema pesama za zadatu pretragu.</p>
+        <button mat-stroked-button (click)="clearFilters()">
+            Prikaži sve pesme
+        </button>
     </div>
     }
 
@@ -19,5 +69,20 @@
         <app-song-card [song]="song" />
         }
     </div>
+
+    <div class="custom-paginator">
+        <button [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <span class="page-info">
+            Stranica <strong>{{ currentPage + 1 }}</strong> od <strong>{{ totalPages }}</strong>
+        </span>
+
+        <button [disabled]="currentPage >= totalPages - 1" (click)="changePage(currentPage + 1)">
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+    </div>
     }
+
 </div>
