@@ -119,10 +119,17 @@
     overflow-x: auto;
 }
 
+.actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+}
+
 .owner-actions {
     display: flex;
     gap: 12px;
-    padding: 14px 24px;
+    padding-top: 24px;
 
     button {
         border-radius: 10px;
@@ -132,4 +139,32 @@
     :hover {
         background-color: rgba(100, 162, 255, 0.7);
     }
+}
+
+.like-button {
+    color: white;
+    transition: all 0.3s ease;
+
+    &.liked {
+        color: #ff4081;
+    }
+
+    &:hover {
+        cursor: pointer;
+        transform: scale(1.1);
+        color: #ff4081;
+    }
+
+    &:active {
+        cursor: pointer;
+        transform: scale(0.9);
+        color: #ff4081;
+    }
+}
+
+.likes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
 }

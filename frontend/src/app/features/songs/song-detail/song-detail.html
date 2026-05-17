@@ -11,16 +11,26 @@
 
         </div>
 
-        @if (isOwner) {
-        <div class="owner-actions container">
-            <button mat-stroked-button [routerLink]="['/songs', song!.id, 'edit']">
-                <mat-icon>edit</mat-icon> Izmeni
-            </button>
-            <button mat-stroked-button color="warn" (click)="confirmDelete()">
-                <mat-icon>delete</mat-icon> Obriši
-            </button>
+        <div class="actions container">
+            <div class="likes">
+                <p>{{ song.likeCount }}</p>
+                <div class="like-button" [class.liked]="liked">
+                    <span color="warn" (click)="like()">
+                        <mat-icon>{{ liked ? 'favorite' : 'favorite_border' }}</mat-icon>
+                    </span>
+                </div>
+            </div>
+            @if (isOwner) {
+            <div class="owner-actions">
+                <button mat-stroked-button [routerLink]="['/songs', song!.id, 'edit']">
+                    <mat-icon>edit</mat-icon> Izmeni
+                </button>
+                <button mat-stroked-button color="warn" (click)="confirmDelete()">
+                    <mat-icon>delete</mat-icon> Obriši
+                </button>
+            </div>
+            }
         </div>
-        }
     </div>
 
     <!-- <div class="transpose-bar">
