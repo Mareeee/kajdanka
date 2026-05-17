@@ -10,25 +10,42 @@
 
         <span class="spacer"></span>
 
+        @if (isRouterReady() && !isOnSongsPage()) {
         <nav class="nav-menu">
-            <a mat-button routerLink="/songs" routerLinkActive="active-link">
+            <a mat-button routerLink="/songs">
                 Pesme
             </a>
         </nav>
+        }
+
+        @if (isRouterReady() && isOnSongsPage()) {
+        <div class="nav-search">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input class="search-input" type="text" placeholder="Pretraži pesme ili izvođače..."
+                [(ngModel)]="searchQuery" (keyup.enter)="search()" (keyup.escape)="clearSearch()" />
+            @if (searchQuery) {
+            <button class="clear-btn" (click)="clearSearch()">
+                <mat-icon>close</mat-icon>
+            </button>
+            }
+        </div>
+        }
 
         <div class="nav-menu">
 
-            @if (authService.isLoggedIn()) {
+            @if (!isOnHomePage()) {
             <a mat-button routerLink="/songs/new" routerLinkActive="active-link">
                 <mat-icon>add</mat-icon> Dodaj pesmu
             </a>
-            <button mat-button routerLink="/profile">
+            }
+            @if (authService.isLoggedIn()) {
+            <button mat-button routerLink="/profile" routerLinkActive="active-link">
                 <mat-icon>person</mat-icon>
                 {{ authService.currentUser()?.username }}
             </button>
             }
 
-            @if (!authService.isLoggedIn()) {
+            @if (!authService.isLoggedIn() && isOnHomePage()) {
             <a mat-button routerLink="/login">Prijavi se</a>
             <button mat-flat-button routerLink="/register">
                 <mat-icon>person_add</mat-icon>

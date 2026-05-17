@@ -8,8 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SongService } from '../../../core/services/song.service';
 import { SongSummary } from '../../../core/models/song.model';
 import { SongCardComponent } from '../../../shared/components/song-card/song-card';
@@ -23,10 +21,11 @@ import { SongCardComponent } from '../../../shared/components/song-card/song-car
     CommonModule, FormsModule, ReactiveFormsModule,
     MatInputModule, MatSelectModule, MatButtonModule,
     MatIconModule, MatPaginatorModule, MatProgressSpinnerModule,
-    MatChipsModule, SongCardComponent
+    SongCardComponent
   ]
 })
 export class SongListComponent implements OnInit {
+
   songs: SongSummary[] = [];
   genres: string[] = [];
   loading = false;
@@ -34,6 +33,8 @@ export class SongListComponent implements OnInit {
   currentPage = 0;
   pageSize = 12;
   selectedGenre = '';
+
+  activeSearch = '';
 
   searchControl = new FormControl('');
 
@@ -45,21 +46,13 @@ export class SongListComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      if (params['search']) {
-        this.searchControl.setValue(params['search'], { emitEvent: false });
-      }
-      this.loadSongs();
-    });
+      const search = params['search'] ?? '';
+      this.activeSearch = search;
 
-    this.searchControl.valueChanges.pipe(
-      debounceTime(400),
-      distinctUntilChanged()
-    ).subscribe(() => {
+      this.searchControl.setValue(search, { emitEvent: false });
       this.currentPage = 0;
       this.loadSongs();
     });
-
-    this.songService.getGenres().subscribe(g => this.genres = g);
   }
 
   loadSongs(): void {
@@ -84,17 +77,19 @@ export class SongListComponent implements OnInit {
     this.loadSongs();
   }
 
-  onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.loadSongs();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  clearFilters(): void {
+    this.selectedGenre = '';
+    this.activeSearch = '';
+    this.currentPage = 0;
+    this.router.navigate(['/songs']);
   }
 
-  clearFilters(): void {
-    this.searchControl.setValue('');
-    this.selectedGenre = '';
-    this.currentPage = 0;
+  get totalPages(): number {
+    return Math.ceil(this.totalElements / this.pageSize) || 1;
+  }
+
+  changePage(newPage: number): void {
+    this.currentPage = newPage;
     this.loadSongs();
   }
 }
