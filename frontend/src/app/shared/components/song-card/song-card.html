@@ -25,8 +25,8 @@
     <mat-card-footer>
         <div class="card-stats">
             <div class="stat-group">
-                <span class="stat-item">
-                    <mat-icon>favorite_border</mat-icon>
+                <span class="stat-item" [class.liked]="liked">
+                    <mat-icon> {{ liked ? 'favorite' : 'favorite_border' }}</mat-icon>
                     {{ song.likeCount }}
                 </span>
                 <span class="stat-item">

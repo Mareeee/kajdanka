@@ -15,6 +15,7 @@ $card-white: rgba(255, 255, 255, 0.8);
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 20px rgba($deep-navy, 0.03);
+    min-height: 220px;
 
     &:hover {
         transform: translateY(-8px);
@@ -41,6 +42,7 @@ $card-white: rgba(255, 255, 255, 0.8);
 
 mat-card-header {
     padding: 0 0 16px 0;
+    flex-grow: 1;
 
     mat-card-title {
         font-size: 1.25rem !important;
@@ -124,6 +126,10 @@ mat-card-header {
             width: 18px;
             height: 18px;
         }
+    }
+
+    .liked {
+        color: red;
     }
 
     .user-info {

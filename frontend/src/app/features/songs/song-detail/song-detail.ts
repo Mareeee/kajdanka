@@ -14,6 +14,7 @@ import { ChordDisplayComponent } from '../../../shared/components/chord-display/
 import { transposeLyrics, extractUniqueChords } from '../../../core/utils/transpose.util';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
+import { LikeService } from '../../../core/services/like.service';
 
 @Component({
   selector: 'app-song-detail',
@@ -31,13 +32,14 @@ export class SongDetailComponent implements OnInit {
   song: SongDetail | null = null;
   loading = true;
   semitones = 0;
+  liked = false;
 
   private authService = inject(AuthService);
   private songService = inject(SongService);
+  private likeService = inject(LikeService);
   private snackBar = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -48,6 +50,17 @@ export class SongDetailComponent implements OnInit {
       },
       error: () => { this.loading = false; }
     });
+
+    if (this.authService.currentUser()) {
+      this.likeService.isLikedByUser(id).subscribe({
+        next: liked => {
+          this.liked = liked;
+        },
+        error: () => { this.liked = false; }
+      });
+    } else {
+      this.liked = false;
+    }
   }
 
   get transposedLyrics(): string {
@@ -91,5 +104,20 @@ export class SongDetailComponent implements OnInit {
         this.snackBar.open('Greška pri brisanju.', 'Zatvori', { duration: 3000 });
       }
     });
+  }
+
+  like(): void {
+    if (!this.authService.currentUser()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.likeService.setLiked(this.song!.id).subscribe({
+      next: liked => {
+        this.liked = liked;
+        liked ? this.song!.likeCount++ : this.song!.likeCount--
+      },
+      error: () => { }
+    })
   }
 }
