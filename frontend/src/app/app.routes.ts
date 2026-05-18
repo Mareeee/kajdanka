@@ -43,8 +43,7 @@ export const routes: Routes = [
             import('./features/auth/register/register').then(m => m.RegisterComponent)
     },
     {
-        path: 'profile',
-        canActivate: [authGuard],
+        path: 'profile/:username',
         loadComponent: () =>
             import('./features/profile/profile').then(m => m.ProfileComponent)
     },

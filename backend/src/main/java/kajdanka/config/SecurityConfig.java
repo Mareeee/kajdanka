@@ -42,6 +42,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/users/{username}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/genres").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/featured").permitAll()

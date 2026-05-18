@@ -39,10 +39,11 @@
             </a>
             }
             @if (authService.isLoggedIn()) {
-            <button mat-button routerLink="/profile" routerLinkActive="active-link">
+            <a mat-button [routerLink]="['/profile', authService.currentUser()?.username]"
+                routerLinkActive="active-link">
                 <mat-icon>person</mat-icon>
                 {{ authService.currentUser()?.username }}
-            </button>
+            </a>
             }
 
             @if (!authService.isLoggedIn() && isOnHomePage()) {

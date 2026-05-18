@@ -78,7 +78,8 @@
         @for (comment of song.comments; track $index) {
         <div class="comment-bundle">
             <div class="comment-info">
-                <div class="username" [class.owner]="comment.username == song.authorUsername ? '.owner' : ''">
+                <div class="username" [routerLink]="['/profile', comment.username]"
+                    [class.owner]="comment.username == song.authorUsername ? '.owner' : ''">
                     {{ comment.username }} {{ authService.currentUser()?.username == comment.username ? "(Vi)" : ""}}
                 </div>
                 <div class="comment">
