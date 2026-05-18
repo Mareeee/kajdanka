@@ -5,7 +5,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { SongService } from '../../../core/services/song.service';
 import { SongFormComponent } from '../song-form/song-form';
-import { SongSummary } from '../../../core/models/song.model';
+import { Song } from '../../../core/models/song.model';
 
 @Component({
     selector: 'app-song-create',
@@ -24,7 +24,7 @@ export class SongCreateComponent {
         public router: Router
     ) { }
 
-    onCreate(payload: SongSummary): void {
+    onCreate(payload: Song): void {
         this.loading = true;
         this.songService.createSong(payload).subscribe({
             next: song => {

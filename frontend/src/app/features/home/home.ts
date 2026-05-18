@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { SongService } from '../../core/services/song.service';
-import { SongSummary } from '../../core/models/song.model';
+import { Song } from '../../core/models/song.model';
 import { SongCardComponent } from '../../shared/components/song-card/song-card';
 
 @Component({
@@ -23,7 +23,7 @@ import { SongCardComponent } from '../../shared/components/song-card/song-card';
   ]
 })
 export class HomeComponent implements OnInit {
-  featuredSongs: SongSummary[] = [];
+  featuredSongs: Song[] = [];
   searchQuery = '';
   loading = true;
 

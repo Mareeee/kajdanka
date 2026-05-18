@@ -1,4 +1,4 @@
-import { SongSummary } from "./song.model";
+import { Song } from "./song.model";
 
 export interface User {
     id: number;
@@ -6,5 +6,5 @@ export interface User {
     email: string;
     role: string;
     createdAt: string;
-    songs: SongSummary[];
+    songs: Song[];
 }

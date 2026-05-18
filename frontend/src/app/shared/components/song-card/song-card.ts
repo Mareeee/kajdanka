@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
-import { SongSummary } from '../../../core/models/song.model';
+import { Song } from '../../../core/models/song.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { LikeService } from '../../../core/services/like.service';
 
@@ -22,7 +22,7 @@ export class SongCardComponent {
 
   protected liked = false;
 
-  @Input({ required: true }) song!: SongSummary;
+  @Input({ required: true }) song!: Song;
 
   ngOnInit(): void {
     if (this.authService.currentUser()) {
