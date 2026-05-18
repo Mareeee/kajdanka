@@ -18,13 +18,15 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserProfileDto getMyProfile() {
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new java.util.NoSuchElementException("User not found"));
+    public UserProfileDto getProfile(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow();
+//
+//        String email = SecurityContextHolder.getContext()
+//                .getAuthentication()
+//                .getName();
+//
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new java.util.NoSuchElementException("User not found"));
 
         List<SongSummaryDto> songs = user.getSongs().stream()
                 .map(song -> new SongSummaryDto(

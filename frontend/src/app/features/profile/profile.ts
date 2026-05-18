@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
@@ -26,13 +26,13 @@ export class ProfileComponent implements OnInit {
   profile: User | null = null;
   loading = true;
 
-  constructor(
-    private userService: UserService,
-    public authService: AuthService
-  ) { }
+  private route = inject(ActivatedRoute);
+  private userService = inject(UserService);
+  public authService = inject(AuthService);
 
   ngOnInit(): void {
-    this.userService.getMyProfile().subscribe({
+    const username = this.route.snapshot.paramMap.get('username');
+    this.userService.getProfile(username!).subscribe({
       next: profile => {
         this.profile = profile;
         this.loading = false;
@@ -45,13 +45,6 @@ export class ProfileComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
-  }
-
-  formatMemberSince(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('sr-RS', {
-      month: 'long',
-      year: 'numeric'
-    });
   }
 
   get avatarInitials(): string {

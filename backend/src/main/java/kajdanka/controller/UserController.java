@@ -16,9 +16,9 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/me")
+    @GetMapping("/{username}")
     @Operation(summary = "Logged in User Profile", security = @SecurityRequirement(name = "bearerAuth"))
-    public UserProfileDto getMyProfile() {
-        return userService.getMyProfile();
+    public UserProfileDto getMyProfile(@PathVariable String username) {
+        return userService.getProfile(username);
     }
 }

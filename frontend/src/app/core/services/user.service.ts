@@ -8,7 +8,7 @@ export class UserService {
 
     private readonly http = inject(HttpClient);
 
-    getMyProfile(): Observable<User> {
-        return this.http.get<User>(`/users/me`);
+    getProfile(username: string): Observable<User> {
+        return this.http.get<User>(`/users/${username}`);
     }
 }
