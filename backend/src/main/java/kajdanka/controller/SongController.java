@@ -103,4 +103,10 @@ public class SongController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
+    @GetMapping("/artist/{artist}")
+    @Operation(summary = "Genres list")
+    public List<SongSummaryDto> getGenres(@PathVariable String artist) {
+        return songService.getByArtist(artist);
+    }
 }

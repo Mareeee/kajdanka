@@ -43,6 +43,14 @@ public class SongService {
         return toDetailDto(song);
     }
 
+    @Transactional
+    public List<SongSummaryDto> getByArtist(String artist) {
+        return songRepository.findAllByArtist(artist)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
     public List<SongSummaryDto> getFeaturedSongs(int count) {
         return songRepository.findFeatured(PageRequest.of(0, count))
                 .stream()

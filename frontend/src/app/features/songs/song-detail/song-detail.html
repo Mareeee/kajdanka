@@ -7,7 +7,7 @@
     <div class="song-header">
         <div class="container">
             <h1>{{ song.title }}</h1>
-            <h2>{{ song.artist }}</h2>
+            <h2 class="artist" [routerLink]="['/songs/artist', song.artist]">{{ song.artist }}</h2>
 
         </div>
 

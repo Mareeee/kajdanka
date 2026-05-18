@@ -24,6 +24,10 @@ export class SongService {
         return this.http.get<Song>(`/songs/${id}`);
     }
 
+    getByArtist(artist: string): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/artist/${artist}`);
+    }
+
     getFeatured(count = 8): Observable<Song[]> {
         return this.http.get<Song[]>(`/songs/featured`, { params: { count } });
     }

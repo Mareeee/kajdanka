@@ -1,0 +1,133 @@
+.center {
+    display: flex;
+    justify-content: center;
+    padding: 64px;
+}
+
+.artist-header {
+    display: flex;
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    padding: 120px 0px 44px 0px;
+
+    h1 {
+        font-size: 2.2rem;
+        font-weight: 900;
+        margin: 12px 0 4px;
+    }
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.songs-container {
+    padding: 24px 16px;
+
+    .song-list {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .song-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid #e2e8f0;
+        transition: background-color 0.15s ease-in-out;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        &:nth-child(even) {
+            background-color: #f3f7fc;
+        }
+
+        &:hover {
+            background-color: #90caf959 !important;
+        }
+
+        .song-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .title-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+
+                .song-title {
+                    font-size: 1.15rem;
+                    font-weight: 600;
+                    color: #1e293b;
+                }
+
+                .genre-badge {
+                    font-size: 0.75rem;
+                    background-color: #e0f2fe;
+                    color: #0369a1;
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-weight: 500;
+                    text-transform: capitalize;
+                }
+            }
+
+            .song-meta {
+                display: flex;
+                align-items: center;
+                font-size: 0.85rem;
+                color: #64748b;
+                gap: 1em;
+
+                span {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                strong {
+                    color: #475569;
+                }
+            }
+        }
+
+        .song-stats {
+            display: flex;
+            gap: 16px;
+            color: #64748b;
+
+            .stat {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.9rem;
+
+                mat-icon {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+        }
+    }
+
+    .no-songs {
+        text-align: center;
+        padding: 48px;
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+}

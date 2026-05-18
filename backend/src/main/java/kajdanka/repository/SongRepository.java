@@ -46,4 +46,6 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     void incrementViewCount(@Param("id") Long id);
 
     List<Song> findByUserOrderByCreatedAtDesc(User user);
+
+    List<Song> findAllByArtist(String artist);
 }

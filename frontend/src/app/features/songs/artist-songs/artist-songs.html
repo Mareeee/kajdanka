@@ -1,0 +1,49 @@
+@if (loading) {
+<div class="center"><mat-spinner /></div>
+}
+
+@if (artist && !loading) {
+<div>
+    <div class="artist-header">
+        <div class="container">
+            <h1>{{ artist }}</h1>
+        </div>
+    </div>
+
+    <div class="songs-container container">
+        @if (songs && songs.length > 0) {
+        <div class="song-list">
+            @for (song of songs; track song.id) {
+            <div class="song-item" [routerLink]="['/songs', song.id]">
+                <div class="song-details">
+                    <div class="title-row">
+                        <span class="song-title">{{ song.title }}</span>
+                        @if (song.genre) {
+                        <span class="genre-badge">{{ song.genre }}</span>
+                        }
+                    </div>
+                    <span class="song-meta">
+                        <span><mat-icon>person</mat-icon><strong>{{ song.authorUsername }}</strong></span>
+                        @if (song.keySignature) { Tonalitet: {{ song.keySignature }} }
+                        @if (song.capo) { | Capo: {{ song.capo }} }
+                    </span>
+                </div>
+                <div class="song-stats">
+                    <span class="stat">
+                        <mat-icon>favorite</mat-icon> {{ song.likeCount }}
+                    </span>
+                    <span class="stat">
+                        <mat-icon>visibility</mat-icon> {{ song.viewCount }}
+                    </span>
+                </div>
+            </div>
+            }
+        </div>
+        } @else {
+        <div class="no-songs">
+            <p>Nema pronađenih pesama za ovog izvođača.</p>
+        </div>
+        }
+    </div>
+</div>
+}
