@@ -11,4 +11,12 @@ export class CommentService {
     getComments(songId: number): Observable<Comment[]> {
         return this.http.get<Comment[]>(`/comments/${songId}`);
     }
+
+    sendComment(songId: number, comment: string): Observable<Comment[]> {
+        return this.http.post<Comment[]>(`/comments/${songId}`, comment);
+    }
+
+    deleteComment(songId: number, commentId: number): Observable<Comment[]> {
+        return this.http.delete<Comment[]>(`/comments/${songId}/${commentId}`);
+    }
 }

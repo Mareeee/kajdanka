@@ -7,7 +7,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SongService } from '../../../core/services/song.service';
 import { Song } from '../../../core/models/song.model';
 import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
@@ -27,7 +27,7 @@ import { Comment } from '../../../core/models/comment.model';
     CommonModule, RouterModule, FormsModule,
     MatButtonModule, MatIconModule, MatChipsModule,
     MatSliderModule, MatProgressSpinnerModule, MatDividerModule,
-    ChordDisplayComponent
+    ChordDisplayComponent, ReactiveFormsModule, FormsModule
   ]
 })
 export class SongDetailComponent implements OnInit {
@@ -35,7 +35,7 @@ export class SongDetailComponent implements OnInit {
   loading = true;
   semitones = 0;
   liked = false;
-
+  commentInput: string = '';
 
   protected authService = inject(AuthService);
   private songService = inject(SongService);
@@ -122,6 +122,36 @@ export class SongDetailComponent implements OnInit {
         liked ? this.song!.likeCount++ : this.song!.likeCount--
       },
       error: () => { }
+    })
+  }
+
+  sendComment(): void {
+    var comment: string = this.commentInput.trim()
+    if (!comment) return;
+
+    if (!this.authService.currentUser()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.commentInput = '';
+
+    this.commentService.sendComment(this.song!.id, comment).subscribe({
+      next: (comments) => {
+        this.song!.comments = comments;
+      },
+    })
+  }
+
+  deleteComment(commentId: number): void {
+    console.log(commentId)
+    this.commentService.deleteComment(this.song!.id, commentId).subscribe({
+      next: (comments) => {
+
+        this.song!.comments = comments;
+      }, error(err) {
+        console.log(err);
+      },
     })
   }
 }

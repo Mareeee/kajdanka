@@ -3,8 +3,8 @@ package kajdanka.repository;
 import kajdanka.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    Optional<Comment> findBySongId(Long songId);
+    List<Comment> findAllBySongId(Long songId);
 }

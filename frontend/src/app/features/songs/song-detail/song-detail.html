@@ -70,17 +70,28 @@
     </div>
 
     <div class="comment-section container">
+        <div class="comment-input">
+            <input type="text" [(ngModel)]="commentInput" (keyup.Enter)="sendComment()" placeholder="Ostavite komentar">
+            <span class="button" (click)="sendComment()"><mat-icon>send</mat-icon></span>
+        </div>
         @if (song.comments.length > 0) {
         @for (comment of song.comments; track $index) {
         <div class="comment-bundle">
-            <div class="username" [class.owner]="comment.username == song.authorUsername ? '.owner' : ''">
-                {{ comment.username }} {{ authService.currentUser()?.username == comment.username ? "(Vi)" : ""}}
+            <div class="comment-info">
+                <div class="username" [class.owner]="comment.username == song.authorUsername ? '.owner' : ''">
+                    {{ comment.username }} {{ authService.currentUser()?.username == comment.username ? "(Vi)" : ""}}
+                </div>
+                <div class="comment">
+                    {{ comment.comment }}
+                </div>
+                <div class="createdAt">
+                    {{ comment.createdAt | date:'dd.MM.yyyy. HH:mm' }}
+                </div>
             </div>
-            <div class="comment">
-                {{ comment.comment }}
-            </div>
-            <div class="createdAt">
-                {{ comment.createdAt | date:'dd.MM.yyyy. HH:mm' }}
+            <div class="comment-delete">
+                @if (authService.currentUser()?.username == comment.username) {
+                <span (click)="deleteComment(comment.id)"><mat-icon>delete</mat-icon></span>
+                }
             </div>
         </div>
         }
