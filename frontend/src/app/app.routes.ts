@@ -20,6 +20,11 @@ export const routes: Routes = [
             import('./features/songs/song-create/song-create').then(m => m.SongCreateComponent)
     },
     {
+        path: 'songs/artist/:artist',
+        loadComponent: () =>
+            import('./features/songs/artist-songs/artist-songs').then(m => m.ArtistSongs)
+    },
+    {
         path: 'songs/:id',
         loadComponent: () =>
             import('./features/songs/song-detail/song-detail').then(m => m.SongDetailComponent)
