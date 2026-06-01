@@ -36,6 +36,18 @@ export const routes: Routes = [
             import('./features/songs/song-edit/song-edit').then(m => m.SongEditComponent)
     },
     {
+        path: 'setlists/new',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/setlists/setlist-create/setlist-create').then(m => m.SetlistCreateComponent)
+    },
+    {
+        path: 'setlists/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/setlists/setlist-detail/setlist-detail').then(m => m.SetlistDetailComponent)
+    },
+    {
         path: 'login',
         canActivate: [guestGuard],
         loadComponent: () =>

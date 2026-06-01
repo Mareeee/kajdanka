@@ -151,3 +151,58 @@
         margin: 0;
     }
 }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    h2 {
+        margin: 0;
+    }
+}
+
+.setlists-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.setlist-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+
+    mat-icon {
+        opacity: 0.6;
+    }
+
+    .setlist-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .setlist-name {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .setlist-desc {
+        font-size: 0.85rem;
+        opacity: 0.6;
+    }
+
+    .setlist-count {
+        font-size: 0.8rem;
+        opacity: 0.5;
+    }
+}
