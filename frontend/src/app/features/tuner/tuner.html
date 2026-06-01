@@ -1,0 +1,62 @@
+<div class="tuner-page">
+    <div class="tuner-card">
+
+        <div class="tuner-header">
+            <h1 class="tuner-title">Štimer</h1>
+        </div>
+
+        <div class="tuner-body">
+            <div class="guitar-wrap">
+                <img src="app/assets/guitar.png" alt="Guitar headstock" class="guitar-img" />
+
+                @for (s of strings; track s.note) {
+                <button class="string-dot" [class.selected]="selectedString()?.note === s.note"
+                    [class.in-tune]="isInTune() && selectedString()?.note === s.note" [style.top]="s.top"
+                    [style.left]="s.left" (click)="selectString(s)" [title]="s.note">
+                    {{ s.label }}
+                </button>
+                }
+            </div>
+
+            <div class="meter-wrap">
+                <div class="note-display">
+                    <span class="note-name">{{ detectedNote() }}</span>
+                    @if (centsDisplay()) {
+                    <span class="cents-display" [class.in-tune]="isInTune()">{{ centsDisplay() }}</span>
+                    }
+                </div>
+
+                <div class="needle-meter">
+                    <svg viewBox="0 0 300 160">
+                        <path d="M 30 145 A 120 120 0 0 1 270 145" fill="none" stroke="#e2e8f0" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path d="M 30 145 A 120 120 0 0 1 270 145" fill="none" [attr.stroke]="needleColor()"
+                            stroke-width="6" stroke-linecap="round" stroke-dasharray="377"
+                            [attr.stroke-dashoffset]="377 * (1 - (needleAngle() + 90) / 180)" opacity="0.3" />
+
+                        <line x1="150" y1="145" x2="30" y2="145" stroke="#cbd5e1" stroke-width="1" opacity="0.5" />
+                        <line x1="150" y1="145" x2="270" y2="145" stroke="#cbd5e1" stroke-width="1" opacity="0.5" />
+
+                        <text x="22" y="148" font-size="11" fill="#94a3b8" text-anchor="middle">-10</text>
+                        <text x="150" y="22" font-size="11" fill="#94a3b8" text-anchor="middle">0</text>
+                        <text x="278" y="148" font-size="11" fill="#94a3b8" text-anchor="middle">+10</text>
+
+                        <g [attr.transform]="'rotate(' + needleAngle() + ', 150, 145)'">
+                            <line x1="150" y1="145" x2="150" y2="40" [attr.stroke]="needleColor()" stroke-width="3"
+                                stroke-linecap="round" />
+                            <circle cx="150" cy="145" r="6" [attr.fill]="needleColor()" />
+                        </g>
+                    </svg>
+                </div>
+
+
+            </div>
+        </div>
+
+        <button class="listen-btn" [class.active]="isListening()" (click)="toggleListening()">
+            <mat-icon>{{ isListening() ? 'mic' : 'mic_none' }}</mat-icon>
+            {{ isListening() ? 'Isključi' : 'Uključi' }}
+        </button>
+
+    </div>
+</div>
