@@ -48,6 +48,11 @@ export const routes: Routes = [
             import('./features/setlists/setlist-detail/setlist-detail').then(m => m.SetlistDetailComponent)
     },
     {
+        path: 'tuner',
+        loadComponent: () =>
+            import('./features/tuner/tuner').then(m => m.TunerComponent)
+    },
+    {
         path: 'login',
         canActivate: [guestGuard],
         loadComponent: () =>
