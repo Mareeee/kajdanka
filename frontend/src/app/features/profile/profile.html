@@ -24,7 +24,7 @@
                 </span>
             </div>
 
-            @if (authService.isLoggedIn() && authService.currentUser()!.username == profile.username) {
+            @if (isOwnProfile) {
             <button mat-stroked-button class="logout-btn" (click)="logout()">
                 <mat-icon>logout</mat-icon>
                 Odjavi se
@@ -36,12 +36,19 @@
 
     <div class="profile-content container">
 
-        <h2>
-            <mat-icon>library_music</mat-icon>
-            {{ authService.isLoggedIn() && authService.currentUser()!.username == profile.username ? "Moje pesme" :
-            "Objavljenje pesme" }}
-            <span class="count">{{ profile.songs.length }}</span>
-        </h2>
+        <div class="section-header">
+            <h2>
+                <mat-icon>library_music</mat-icon>
+                {{ isOwnProfile ? 'Moje pesme' : 'Objavljene pesme' }}
+                <span class="count">{{ profile.songs.length }}</span>
+            </h2>
+            @if (isOwnProfile) {
+            <button mat-raised-button color="primary" routerLink="/setlists/new">
+                <mat-icon>playlist_add</mat-icon>
+                Setlista +
+            </button>
+            }
+        </div>
 
         <mat-divider />
 
@@ -59,6 +66,31 @@
         <div class="songs-grid">
             @for (song of profile.songs; track song.id) {
             <app-song-card [song]="song" />
+            }
+        </div>
+        }
+
+        @if (isOwnProfile && setlists.length > 0) {
+        <h2 style="margin-top: 2.5rem;">
+            <mat-icon>queue_music</mat-icon>
+            Moje setliste
+            <span class="count">{{ setlists.length }}</span>
+        </h2>
+
+        <mat-divider />
+
+        <div class="setlists-grid">
+            @for (setlist of setlists; track setlist.id) {
+            <div class="setlist-card" [routerLink]="['/setlists', setlist.id]" style="cursor:pointer">
+                <mat-icon>queue_music</mat-icon>
+                <div class="setlist-info">
+                    <span class="setlist-name">{{ setlist.name }}</span>
+                    @if (setlist.description) {
+                    <span class="setlist-desc">{{ setlist.description }}</span>
+                    }
+                    <span class="setlist-count">{{ setlist.songCount }} pesama</span>
+                </div>
+            </div>
             }
         </div>
         }

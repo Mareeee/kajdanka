@@ -1,0 +1,110 @@
+<div class="page-header">
+    <div class="container">
+        <div class="header-top">
+            <button mat-icon-button class="back-btn" onclick="history.back()">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+
+            @if (!editMode && setlist) {
+            <div class="title-block">
+                <h1>{{ setlist.name }}</h1>
+                @if (setlist.description) {
+                <span class="subtitle">{{ setlist.description }}</span>
+                }
+            </div>
+            <button mat-icon-button class="edit-icon-btn" (click)="startEdit()">
+                <mat-icon>edit</mat-icon>
+            </button>
+            }
+
+            @if (editMode) {
+            <div class="edit-form">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Naziv</mat-label>
+                    <input matInput [(ngModel)]="editName" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Opis</mat-label>
+                    <input matInput [(ngModel)]="editDescription" />
+                </mat-form-field>
+                <div class="edit-actions">
+                    <button mat-raised-button (click)="saveEdit()" [disabled]="saving || !editName.trim()"
+                        class="save-btn">
+                        Sačuvaj
+                    </button>
+                    <button mat-stroked-button (click)="cancelEdit()" [disabled]="saving" class="cancel-btn">
+                        Otkaži
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+
+        @if (!editMode && setlist) {
+        <div class="filters-row">
+            <span class="results-count">{{ setlist.songs.length }} {{ setlist.songs.length === 1 ? 'pesma' : 'pesama'
+                }}</span>
+        </div>
+        }
+    </div>
+</div>
+
+<div class="container main-content">
+
+    @if (loading) {
+    <div class="center-state">
+        <mat-spinner diameter="44"></mat-spinner>
+    </div>
+    }
+
+    @if (!loading && !setlist) {
+    <div class="empty-state">
+        <mat-icon>queue_music</mat-icon>
+        <p>Setlista nije pronađena.</p>
+    </div>
+    }
+
+    @if (!loading && setlist) {
+
+    <div class="search-row">
+        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+            <mat-label>Pretraži pesme u setlisti</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" />
+        </mat-form-field>
+    </div>
+
+    @if (filteredSongs.length === 0) {
+    <div class="empty-state">
+        <mat-icon>search_off</mat-icon>
+        <p>
+            @if (setlist.songs.length === 0) { Setlista je prazna. }
+            @else { Nema rezultata za "{{ searchQuery }}". }
+        </p>
+    </div>
+    }
+
+    <div class="songs-list">
+        @for (song of filteredSongs; track song.id) {
+        <div class="song-row">
+            <div class="song-main" [routerLink]="['/songs', song.id]">
+                <span class="song-title">{{ song.title }}</span>
+                <span class="song-artist">{{ song.artist }}</span>
+            </div>
+            <div class="song-meta">
+                @if (song.keySignature) {
+                <span class="key-badge">
+                    <mat-icon>music_note</mat-icon>{{ song.keySignature }}
+                </span>
+                }
+                <button mat-icon-button class="remove-btn" (click)="removeSong(song)" title="Ukloni iz setliste">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+
+    }
+
+</div>

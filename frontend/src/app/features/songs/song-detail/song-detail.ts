@@ -7,9 +7,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatMenuModule } from '@angular/material/menu';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SongService } from '../../../core/services/song.service';
+import { SetlistService } from '../../../core/services/setlist.service';
 import { Song } from '../../../core/models/song.model';
+import { Setlist } from '../../../core/models/setlist.model';
 import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
 import { transposeLyrics, extractUniqueChords } from '../../../core/utils/transpose.util';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -27,7 +30,7 @@ import { Comment } from '../../../core/models/comment.model';
     CommonModule, RouterModule, FormsModule,
     MatButtonModule, MatIconModule, MatChipsModule,
     MatSliderModule, MatProgressSpinnerModule, MatDividerModule,
-    ChordDisplayComponent, ReactiveFormsModule, FormsModule
+    MatMenuModule, ChordDisplayComponent, ReactiveFormsModule, FormsModule
   ]
 })
 export class SongDetailComponent implements OnInit {
@@ -36,11 +39,13 @@ export class SongDetailComponent implements OnInit {
   semitones = 0;
   liked = false;
   commentInput: string = '';
+  setlists: Setlist[] = [];
 
   protected authService = inject(AuthService);
   private songService = inject(SongService);
   private likeService = inject(LikeService);
   private commentService = inject(CommentService);
+  private setlistService = inject(SetlistService);
   private snackBar = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -57,10 +62,12 @@ export class SongDetailComponent implements OnInit {
 
     if (this.authService.currentUser()) {
       this.likeService.isLikedByUser(id).subscribe({
-        next: liked => {
-          this.liked = liked;
-        },
+        next: liked => { this.liked = liked; },
         error: () => { this.liked = false; }
+      });
+      this.setlistService.getMySetlists().subscribe({
+        next: setlists => { this.setlists = setlists; },
+        error: () => { }
       });
     } else {
       this.liked = false;
@@ -115,18 +122,28 @@ export class SongDetailComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-
     this.likeService.setLiked(this.song!.id).subscribe({
       next: liked => {
         this.liked = liked;
-        liked ? this.song!.likeCount++ : this.song!.likeCount--
+        liked ? this.song!.likeCount++ : this.song!.likeCount--;
       },
       error: () => { }
-    })
+    });
+  }
+
+  addToSetlist(setlist: Setlist): void {
+    this.setlistService.addSong(setlist.id, this.song!.id).subscribe({
+      next: () => {
+        this.snackBar.open(`Dodato u "${setlist.name}"`, 'Zatvori', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Greška pri dodavanju.', 'Zatvori', { duration: 3000 });
+      }
+    });
   }
 
   sendComment(): void {
-    var comment: string = this.commentInput.trim()
+    var comment: string = this.commentInput.trim();
     if (!comment) return;
 
     if (!this.authService.currentUser()) {
@@ -137,21 +154,14 @@ export class SongDetailComponent implements OnInit {
     this.commentInput = '';
 
     this.commentService.sendComment(this.song!.id, comment).subscribe({
-      next: (comments) => {
-        this.song!.comments = comments;
-      },
-    })
+      next: (comments) => { this.song!.comments = comments; },
+    });
   }
 
   deleteComment(commentId: number): void {
-    console.log(commentId)
     this.commentService.deleteComment(this.song!.id, commentId).subscribe({
-      next: (comments) => {
-
-        this.song!.comments = comments;
-      }, error(err) {
-        console.log(err);
-      },
-    })
+      next: (comments) => { this.song!.comments = comments; },
+      error(err) { console.log(err); }
+    });
   }
 }

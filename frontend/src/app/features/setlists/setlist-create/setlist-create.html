@@ -1,0 +1,27 @@
+<div class="setlist-create-page container">
+
+    <div class="page-header">
+        <button mat-icon-button routerLink="/profile/{{name}}">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Nova setlista</h1>
+    </div>
+
+    <div class="form-card">
+        <mat-form-field appearance="outline">
+            <mat-label>Naziv setliste</mat-label>
+            <input matInput [(ngModel)]="name" placeholder="Npr. Proba u petak" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Opis (opciono)</mat-label>
+            <textarea matInput [(ngModel)]="description" rows="3" placeholder="Kratki opis setliste..."></textarea>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" [disabled]="!name.trim() || loading" (click)="submit()">
+            <mat-icon>playlist_add</mat-icon>
+            Kreiraj setlistu
+        </button>
+    </div>
+
+</div>
