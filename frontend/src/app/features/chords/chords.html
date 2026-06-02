@@ -1,0 +1,110 @@
+<div class="chords-page">
+    <div class="chords-card">
+
+        <div class="chord-header">
+            <h1 class="chord-title">{{ chordTitle() }}</h1>
+            <button class="play-btn" (click)="playChord()" title="Play chord">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="fretboard-wrap">
+            <div class="fretboard">
+
+                <div class="fret-numbers-row">
+                    <div class="open-string-col"></div>
+                    <div class="nut-col"></div>
+                    @for (fret of fretNumbers; track fret) {
+                    @if (fret > 0) {
+                    <div class="fret-num-cell" [class.xs-hide]="fret >= 8">
+                        @if (isFretmark(fret)) {
+                        <div class="fretmark" [class.double-fretmark]="isDoubleFretmark(fret)"></div>
+                        <div class="second-fretmark" [class.double-fretmark]="isDoubleFretmark(fret)"></div>
+                        }
+                        <span>{{ fret }}</span>
+                    </div>
+                    }
+                    }
+                </div>
+
+                @for (row of getStringRows(); track row.label + $index) {
+                <div class="string-row">
+
+                    <div class="open-string-col">
+                        @if (row.openCell.muted) {
+                        <span class="muted-mark">X</span>
+                        } @else {
+                        <span class="string-label">{{ row.label }}</span>
+                        }
+                    </div>
+
+                    <div class="string-line" [style.opacity]="row.lineOpacity"></div>
+
+                    <div class="nut-col">
+                        @if (row.openCell.open) {
+                        <span class="open-dot"></span>
+                        }
+                    </div>
+
+                    @for (cell of row.cells; track cell.fret) {
+                    @if (cell.fret > 0) {
+                    <div class="fret-cell" [class.xs-hide]="cell.isXS" [class.has-fretmark]="isFretmark(cell.fret)"
+                        [class.double-fretmark]="isDoubleFretmark(cell.fret)">
+
+                        @if (cell.isBarreFirst) {
+                        <span class="barre-block barre-block--first">
+                            <span class="barre-label">{{ cell.finger }}</span>
+                        </span>
+                        } @else if (cell.isBarreMid) {
+                        <span class="barre-block barre-block--mid"></span>
+                        } @else if (cell.isBarreLast) {
+                        <span class="barre-block barre-block--last"></span>
+                        } @else if (cell.active) {
+                        <span class="note-dot">{{ cell.finger || '' }}</span>
+                        }
+
+                    </div>
+                    }
+                    }
+
+                </div>
+                }
+
+            </div>
+        </div>
+
+        <div class="options">
+            <div class="variations-row">
+                @for (variation of variations(); track $index) {
+                <button class="variation-btn" [class.active]="isVariationActive($index)"
+                    (click)="selectVariation($index)">
+                    {{ $index + 1 }}
+                </button>
+                }
+            </div>
+
+            <div class="chord-options">
+                <div class="root-selector">
+                    @for (root of rootNotes; track root) {
+                    <button class="selector-btn root-btn" [class.active]="isRootActive(root)"
+                        (click)="selectRoot(root)">
+                        {{ root }}
+                    </button>
+                    }
+                </div>
+
+                <div class="type-selector">
+                    @for (type of chordTypes; track type.value) {
+                    <button class="selector-btn type-btn" [class.active]="isTypeActive(type.value)"
+                        (click)="selectType(type.value)">
+                        {{ type.display }}
+                    </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

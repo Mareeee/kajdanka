@@ -53,6 +53,11 @@ export const routes: Routes = [
             import('./features/tuner/tuner').then(m => m.TunerComponent)
     },
     {
+        path: 'chords',
+        loadComponent: () =>
+            import('./features/chords/chords').then(m => m.ChordsComponent)
+    },
+    {
         path: 'login',
         canActivate: [guestGuard],
         loadComponent: () =>
