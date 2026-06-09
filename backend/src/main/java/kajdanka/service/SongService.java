@@ -81,6 +81,7 @@ public class SongService {
                 .keySignature(request.keySignature())
                 .capo(request.capo())
                 .lyrics(request.lyrics())
+                .isPrivate(request.isPrivate())
                 .user(user)
                 .build();
 

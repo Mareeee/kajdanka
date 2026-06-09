@@ -31,7 +31,7 @@ export class NavbarComponent {
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
       const onHome = e.urlAfterRedirects.endsWith('/');
-      const onSongs = e.urlAfterRedirects.startsWith('/songs');
+      const onSongs = e.urlAfterRedirects.startsWith('/songs') && !e.urlAfterRedirects.startsWith('/analyze');
 
       this.isOnHomePage.set(onHome);
       this.isOnSongsPage.set(onSongs);

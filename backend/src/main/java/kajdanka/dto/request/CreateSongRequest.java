@@ -21,5 +21,7 @@ public record CreateSongRequest(
 
         int capo,
 
+        boolean isPrivate,
+
         String lyrics
 ) {}

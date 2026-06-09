@@ -36,6 +36,12 @@ export const routes: Routes = [
             import('./features/songs/song-edit/song-edit').then(m => m.SongEditComponent)
     },
     {
+        path: 'analyze',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/songs/song-analyze/song-analyze').then(m => m.SongAnalyzeComponent)
+    },
+    {
         path: 'setlists/new',
         canActivate: [authGuard],
         loadComponent: () =>

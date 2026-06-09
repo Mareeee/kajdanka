@@ -21,6 +21,7 @@ public interface SongRepository extends JpaRepository<Song, Long> {
           AND (:genre IS NULL OR :genre = '' OR LOWER(s.genre) = LOWER(:genre))
           AND (:artist IS NULL OR :artist = '' OR
                LOWER(s.artist) LIKE LOWER(CONCAT('%', :artist, '%')))
+          AND s.isPrivate = false
         ORDER BY s.createdAt DESC
         """)
     Page<Song> search(
