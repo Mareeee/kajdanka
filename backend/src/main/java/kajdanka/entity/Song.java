@@ -40,6 +40,10 @@ public class Song {
     @Builder.Default
     private int viewCount = 0;
 
+    @Column(name = "is_private")
+    @Builder.Default
+    private boolean isPrivate = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

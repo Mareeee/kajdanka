@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+librosa==0.10.2
+jams==0.3.5
+scikit-learn==1.5.2
+numpy==1.26.4
+soundfile==0.12.1
+torch
+torchaudio
+faster-whisper
+demucs
+tqdm
+scipy
+yt-dlp

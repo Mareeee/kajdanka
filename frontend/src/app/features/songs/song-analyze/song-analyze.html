@@ -1,0 +1,79 @@
+<div class="analyze-header">
+    <div class="container">
+        <div class="header-row">
+            <mat-icon>auto_awesome</mat-icon>
+            <h1>Analiziraj pesmu</h1>
+        </div>
+        <p class="subtitle">Unesi YouTube link i automatski prepoznaj akorde i tekst pesme</p>
+    </div>
+</div>
+
+<div class="container form-container">
+    <div class="input-group">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>YouTube link</mat-label>
+            <input matInput [(ngModel)]="youtubeLink" placeholder="https://www.youtube.com/watch?v=..." />
+            <mat-icon matSuffix>link</mat-icon>
+        </mat-form-field>
+
+        <button mat-flat-button (click)="analyze()" [disabled]="analyzing || saving || !youtubeLink.trim()">
+            @if (analyzing) {
+            <mat-spinner diameter="20" />
+            Analiziram...
+            } @else {
+            <ng-container matButtonIcon>
+                <mat-icon>graphic_eq</mat-icon>
+                Analiziraj
+            </ng-container>
+            }
+        </button>
+    </div>
+
+    @if (analyzing) {
+    <div class="loading-state">
+        <mat-spinner diameter="48" />
+        <p>Preuzimam audio, razdvajam vokale i prepoznajem akorde...</p>
+        <span class="loading-hint">Ovo može potrajati nekoliko minuta</span>
+    </div>
+    }
+
+    @if (rezultat && !analyzing) {
+    <div class="result-section">
+
+        <div class="result-header">
+            <div class="result-title">
+                <h2>{{ naslov || 'Nepoznata pesma' }}</h2>
+                <span class="artist">{{ izvodjac || 'Nepoznat izvođač' }}</span>
+            </div>
+
+            @if (saving) {
+            <div class="saving-indicator">
+                <mat-spinner diameter="18" />
+                <span>Čuvam...</span>
+            </div>
+            }
+
+            @if (savedSongId && !saving) {
+            <button mat-stroked-button (click)="goToSong()">
+                <mat-icon>open_in_new</mat-icon>
+                Otvori pesmu
+            </button>
+            }
+        </div>
+
+        <div class="chords-legend">
+            <strong>Akordi:</strong>
+            <div class="chord-chips">
+                @for (chord of uniqueChords; track $index) {
+                <mat-chip class="chord-chip">{{ chord }}</mat-chip>
+                }
+            </div>
+        </div>
+
+        <div class="lyrics-section">
+            <app-chord-display [lyrics]="rezultat" />
+        </div>
+
+    </div>
+    }
+</div>

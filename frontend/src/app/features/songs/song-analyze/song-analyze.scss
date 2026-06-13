@@ -1,0 +1,169 @@
+.analyze-header {
+    display: flex;
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    padding: 100px 0px 24px 0px;
+
+    .header-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        mat-icon {
+            font-size: 2rem;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 12px 0 4px;
+        }
+    }
+
+    .subtitle {
+        opacity: 0.85;
+        margin: 4px 0 16px;
+        font-size: 1rem;
+    }
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.form-container {
+    padding: 32px 24px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .full-width {
+        width: 100%;
+    }
+
+    mat-form-field {
+        width: 100%;
+    }
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        align-self: flex-start;
+        padding: 0 24px;
+        height: 44px;
+        border-radius: 12px;
+        background: #1565c0;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+
+        &:disabled {
+            opacity: 0.6;
+        }
+
+        mat-spinner {
+            display: inline-block;
+        }
+    }
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 64px 0;
+    color: #555;
+
+    p {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .loading-hint {
+        font-size: 0.85rem;
+        color: #999;
+    }
+}
+
+.result-section {
+    margin-top: 40px;
+    border-top: 2px solid #e3f2fd;
+    padding-top: 32px;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .result-title {
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin: 0 0 4px;
+            color: #0d47a1;
+        }
+
+        .artist {
+            font-size: 1rem;
+            color: #555;
+        }
+    }
+
+    .saving-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+    button {
+        border-radius: 10px;
+    }
+}
+
+.chords-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 5px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+}
+
+.chord-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chord-chip {
+    background: #1565c0 !important;
+    color: white !important;
+    font-weight: 700;
+}
+
+.lyrics-section {
+    padding: 32px 24px;
+    overflow-x: auto;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
