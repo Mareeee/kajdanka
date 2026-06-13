@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 
 export interface AnalyzeResponse {
     status: string;
-    naslov: string;
-    izvodjac: string;
-    rezultat: string;
+    title: string;
+    performer: string;
+    result: string;
 }
 
 @Injectable({ providedIn: 'root' })

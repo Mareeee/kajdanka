@@ -1,77 +1,118 @@
-def _vreme_u_rec(segmenti: list[dict], vreme: float) -> int:
-    for i, seg in enumerate(segmenti):
-        if seg["start"] <= vreme < seg["end"]:
-            return i
-    return len(segmenti) - 1
+import bisect
 
-def formatiraj_strofu(segmenti: list[dict], akordi: list[dict]) -> str:
-    if not segmenti:
+
+def _word_index_for_time(starts: list[float], time: float) -> int:
+    idx = bisect.bisect_right(starts, time) - 1
+    return max(idx, 0)
+
+
+def format_verse(words: list[str], positions: list[int], chords_with_idx: list[tuple[int, dict]]) -> str:
+    if not words:
         return ""
 
-    reci = [seg["word"].strip() for seg in segmenti]
-    tekst_linija = " ".join(reci)
+    word_line = " ".join(words)
+    chord_line = list(" " * len(word_line))
 
-    pozicije = []
-    offset = 0
-    for rec in reci:
-        pozicije.append(offset)
-        offset += len(rec) + 1
+    next_free = 0
 
-    chord_linija = [" "] * len(tekst_linija)
+    for idx_word, chord_info in chords_with_idx:
+        if not (0 <= idx_word < len(words)):
+            continue
 
-    for akord_info in akordi:
-        idx_reci = _vreme_u_rec(segmenti, akord_info["time"])
-        if idx_reci < len(pozicije):
-            pos = pozicije[idx_reci]
-            for j, ch in enumerate(akord_info["chord"]):
-                target = pos + j
-                if target < len(chord_linija):
-                    chord_linija[target] = ch
-                else:
-                    chord_linija.append(ch)
+        chord_text = chord_info["chord"]
+        if chord_text == "N":
+            continue
 
-    chord_str = "".join(chord_linija).rstrip()
+        pos = max(positions[idx_word], next_free)
+
+        if pos >= len(word_line):
+            continue
+
+        for j, ch in enumerate(chord_text):
+            target = pos + j
+            if target < len(chord_line):
+                chord_line[target] = ch
+            else:
+                chord_line.append(ch)
+
+        next_free = pos + len(chord_text) + 1
+
+    chord_str = "".join(chord_line).rstrip()
     if chord_str.strip():
-        return chord_str + "\n" + tekst_linija
-    return tekst_linija
+        return chord_str + "\n" + word_line
+    return word_line
 
-def formatiraj_izlaz(transkript: list[dict], akordi: list[dict], naslov: str = "") -> str:
-    strofe = _podeli_na_strofe(transkript)
 
-    linije = []
-    for strofa in strofe:
-        akordi_strofe = [
-            a for a in akordi
-            if strofa[0]["start"] <= a["time"] <= strofa[-1]["end"]
+def format(transcript: list[dict], chords: list[dict], title: str = "") -> str:
+    if not transcript:
+        return ""
+
+    starts = [seg["start"] for seg in transcript]
+
+    filtered = []
+    for i, c in enumerate(chords):
+        if i + 1 < len(chords) and chords[i + 1]["time"] - c["time"] < 1.0:
+            continue
+        filtered.append(c)
+    chords = filtered
+
+    start_idx = 0
+    for i, c in enumerate(chords):
+        if c["time"] <= starts[0]:
+            start_idx = i
+        else:
+            break
+    chords = chords[start_idx:]
+
+    chord_indices = [
+        (_word_index_for_time(starts, c["time"]), c)
+        for c in chords
+    ]
+
+    verses = _divide_per_verses(transcript)
+
+    lines = []
+    word_offset = 0
+    for verse in verses:
+        words = [seg["word"].strip() for seg in verse]
+
+        positions = []
+        offset = 0
+        for word in words:
+            positions.append(offset)
+            offset += len(word) + 1
+
+        verse_chords = [
+            (idx - word_offset, c)
+            for idx, c in chord_indices
+            if word_offset <= idx < word_offset + len(verse)
         ]
 
-        linije.append(formatiraj_strofu(strofa, akordi_strofe))
-        linije.append("")
+        lines.append(format_verse(words, positions, verse_chords))
+        lines.append("")
 
-    sadrzaj = "\n".join(linije).strip()
+        word_offset += len(verse)
 
-    if naslov:
-        zaglavlje = f'"{naslov}","Kajdanka AI"\n'
-        return zaglavlje + sadrzaj
+    content = "\n".join(lines).strip()
+    return content
 
-    return sadrzaj
 
-def _podeli_na_strofe(segmenti: list[dict], pauza_sekundi: float = 1.5) -> list[list[dict]]:
-    if not segmenti:
+def _divide_per_verses(segments: list[dict], pause_threshold: float = 1.5) -> list[list[dict]]:
+    if not segments:
         return []
 
-    strofe = []
-    trenutna = [segmenti[0]]
+    verses = []
+    current = [segments[0]]
 
-    for seg in segmenti[1:]:
-        pauza = seg["start"] - trenutna[-1]["end"]
-        if pauza >= pauza_sekundi:
-            strofe.append(trenutna)
-            trenutna = [seg]
+    for seg in segments[1:]:
+        pause = seg["start"] - current[-1]["end"]
+        if pause >= pause_threshold:
+            verses.append(current)
+            current = [seg]
         else:
-            trenutna.append(seg)
+            current.append(seg)
 
-    if trenutna:
-        strofe.append(trenutna)
+    if current:
+        verses.append(current)
 
-    return strofe
+    return verses

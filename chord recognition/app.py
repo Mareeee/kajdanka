@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import traceback
 
-from pipeline import pokreni_pipeline
+from pipeline import start_pipeline
 
 app = FastAPI(title="Music Analyzer")
 
@@ -22,20 +22,20 @@ async def analyze(youtube_link: str = Form(...)):
     temp_dir = tempfile.mkdtemp(prefix="upload_")
 
     try:
-        rezultat, naslov = pokreni_pipeline(youtube_link, temp_dir)
+        result, title = start_pipeline(youtube_link, temp_dir)
 
         return JSONResponse(content={
             "status": "ok",
-            "naslov": naslov,
-            "izvodjac": "Kajdanka AI",
-            "rezultat": rezultat,
+            "title": title,
+            "performer": "Kajdanka AI",
+            "result": result,
         })
 
     except Exception as e:
         traceback.print_exc()
         return JSONResponse(status_code=500, content={
-            "status": "greška",
-            "poruka": str(e),
+            "status": "error",
+            "message": str(e),
         })
 
     finally:

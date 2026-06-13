@@ -3,22 +3,23 @@ import json
 import torch
 import subprocess
 from vocal_remover import create_instrumental
-from chord_predictor import predvidi
-from formatter import formatiraj_izlaz
+from chord_predictor import predict
+from formatter import format
 from faster_whisper import WhisperModel
 
-def _preuzmi_audio(youtube_link: str, folder: str):
-    cilj = os.path.join(folder, "audio.mp3")
 
-    meta_rezultat = subprocess.run([
+def _download_audio(youtube_link: str, folder: str):
+    out_path = os.path.join(folder, "audio.mp3")
+
+    meta_results = subprocess.run([
         "yt-dlp",
         "--dump-json",
         "--no-playlist",
         youtube_link
     ], check=True, capture_output=True, text=True)
 
-    meta = json.loads(meta_rezultat.stdout)
-    naslov = meta.get("title", "Nepoznato")
+    meta = json.loads(meta_results.stdout)
+    title = meta.get("title", "Unknown")
 
     subprocess.run([
         "yt-dlp",
@@ -27,19 +28,20 @@ def _preuzmi_audio(youtube_link: str, folder: str):
         "-x",
         "--audio-format", "mp3",
         "--audio-quality", "0",
-        "-o", cilj,
+        "-o", out_path,
         youtube_link
     ], check=True)
 
-    return cilj, naslov
+    return out_path, title
 
-def _transkribuj_sa_vremenima(putanja_audio: str) -> list[dict]:
+
+def _transcribe_with_times(audio_path: str) -> list[dict]:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     compute_type = "float16" if device == "cuda" else "int8"
 
     model = WhisperModel("medium", device=device, compute_type=compute_type)
     segmenti, _ = model.transcribe(
-        putanja_audio,
+        audio_path,
         language="sr",
         vad_filter=True,
         temperature=0.0,
@@ -48,32 +50,33 @@ def _transkribuj_sa_vremenima(putanja_audio: str) -> list[dict]:
         initial_prompt="latinica: ja, ti, on, mi, vi, oni",
     )
 
-    reci = []
+    words = []
     for segment in segmenti:
         if segment.words:
-            for rec in segment.words:
-                reci.append({
-                    "word": rec.word.strip(),
-                    "start": rec.start,
-                    "end": rec.end,
+            for word in segment.words:
+                words.append({
+                    "word": word.word.strip(),
+                    "start": word.start,
+                    "end": word.end,
                 })
 
-    return reci
+    return words
 
-def pokreni_pipeline(youtube_link: str, radni_folder: str = None):
-    putanja_audio, naslov = _preuzmi_audio(youtube_link, radni_folder)
 
-    create_instrumental(putanja_audio, radni_folder)
+def start_pipeline(youtube_link: str, work_dir: str = None):
+    audio_path, title = _download_audio(youtube_link, work_dir)
 
-    naziv = os.path.splitext(os.path.basename(putanja_audio))[0]
-    demucs_folder = os.path.join(radni_folder, "htdemucs", naziv)
+    create_instrumental(audio_path, work_dir)
 
-    vokali_putanja = os.path.join(demucs_folder, "vocals.wav")
-    instrumental_putanja = os.path.join(demucs_folder, "no_vocals.wav")
+    name = os.path.splitext(os.path.basename(audio_path))[0]
+    demucs_folder = os.path.join(work_dir, "htdemucs", name)
 
-    reci = _transkribuj_sa_vremenima(vokali_putanja)
-    akordi = predvidi(instrumental_putanja)
+    vocals_path = os.path.join(demucs_folder, "vocals.wav")
+    no_vocals_path = os.path.join(demucs_folder, "no_vocals.wav")
 
-    rezultat = formatiraj_izlaz(reci, akordi, naslov)
+    words = _transcribe_with_times(vocals_path)
+    chords = predict(no_vocals_path)
 
-    return rezultat, naslov
+    result = format(words, chords)
+
+    return result, title

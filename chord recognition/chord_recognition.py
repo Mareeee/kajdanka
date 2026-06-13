@@ -7,35 +7,21 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from collections import Counter
+from torch.utils.data import DataLoader
 import re
 import torch.nn.functional as F
 from scipy.stats import mode as scipy_mode
 from tqdm import tqdm
 import time
 
-HOP_LENGTH = 512
-SR_CILJNI = 44100
-EPOHE = 100
-BATCH_SIZE = 32768
-STOPA_UCENJA = 0.001
-CONTEXT_BEFORE = 32
-CONTEXT_AFTER = 8
-CONTEXT_TOTAL = CONTEXT_BEFORE + 1 + CONTEXT_AFTER
-N_FEATURES = 12 * CONTEXT_TOTAL
+from constants import (
+    HOP_LENGTH, TARGET_SR, EPOCHS, BATCH_SIZE, LEARNING_RATE,
+    CONTEXT_BEFORE, CONTEXT_AFTER, CONTEXT_TOTAL, N_FEATURES,
+    PITCHES, IDX_TO_LABEL, LABEL_TO_IDX, N_CLASSES,
+    ENHARMONIC, ROOT_RE,
+)
+from models import FrameDataset, ChordCNN, ChordMLP
 
-PITCHES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-QUALITIES = ["maj", "min"]
-IDX_TO_LABEL = [p + ("" if q == "maj" else "m") for q in QUALITIES for p in PITCHES] + ["N"]
-LABEL_TO_IDX = {lab: i for i, lab in enumerate(IDX_TO_LABEL)}
-N_CLASSES = len(IDX_TO_LABEL)
-
-ENHARMONIC = {
-    "B#": "C", "Cb": "B", "E#": "F", "Fb": "E",
-    "Db": "C#", "D#": "Eb", "Gb": "F#", "G#": "Ab", "A#": "Bb",
-}
-ROOT_RE = re.compile(r"^([A-Ga-g])([#b]?)(.*)$")
 
 def normalize_root(root_str):
     if not root_str:
@@ -47,9 +33,8 @@ def normalize_root(root_str):
         return ENHARMONIC[canonical]
     if canonical in PITCHES:
         return canonical
-    if len(canonical) == 1 and canonical in "ABCDEFG":
-        return canonical
     return None
+
 
 def reduce_quality(rest):
     rest = rest.split("/")[0].strip().lower()
@@ -72,6 +57,7 @@ def reduce_quality(rest):
         return "maj"
     return "maj"
 
+
 def chord_label_to_id(label):
     if not label or label.upper() in ("N", "NO CHORD", "X"):
         return LABEL_TO_IDX["N"]
@@ -86,29 +72,42 @@ def chord_label_to_id(label):
     triad = root + ("" if q == "maj" else "m")
     return LABEL_TO_IDX.get(triad, LABEL_TO_IDX["N"])
 
-def transpozicija_labela(labele, n_steps):
-    N_IDX = LABEL_TO_IDX["N"]
-    rezultat = labele.copy()
-    maska = labele != N_IDX
-    akordi = labele[maska]
-    grupa = akordi // 12
-    ton = akordi % 12
-    novi_ton = (ton + n_steps) % 12
-    rezultat[maska] = grupa * 12 + novi_ton
-    return rezultat
 
-def ucitaj_audio(putanja, sr=SR_CILJNI):
-    y, sr_out = librosa.load(putanja, sr=sr, mono=True)
+def transpose_labels(labels, n_steps):
+    N_IDX = LABEL_TO_IDX["N"]
+    result = labels.copy()
+    mask = labels != N_IDX
+    chords = labels[mask]
+    group = chords // 12
+    tone = chords % 12
+    new_tone = (tone + n_steps) % 12
+    result[mask] = group * 12 + new_tone
+    return result
+
+
+def load_audio(path, sr=TARGET_SR):
+    y, sr_out = librosa.load(path, sr=sr, mono=True)
     if np.max(np.abs(y)) > 0:
         y = y / np.max(np.abs(y))
     return y, sr_out
 
-def audio_u_hromagram(y, sr):
-    C = librosa.feature.chroma_cqt(y=y, sr=sr, hop_length=HOP_LENGTH, n_chroma=12)
-    C = librosa.util.normalize(C, norm=2, axis=0)
-    return C.astype(np.float32)
 
-def napravi_prozore(C_T):
+def audio_to_chromagram(y, sr):
+    C_cqt = librosa.feature.chroma_cqt(y=y, sr=sr, hop_length=HOP_LENGTH, n_chroma=12)
+    C_cqt = librosa.power_to_db(C_cqt, ref=np.max)
+
+    C_cens = librosa.feature.chroma_cens(y=y, sr=sr, hop_length=HOP_LENGTH, n_chroma=12)
+
+    C_cqt_norm = librosa.util.normalize(C_cqt, norm=2, axis=0)
+    C_cens_norm = librosa.util.normalize(C_cens, norm=2, axis=0)
+
+    C_combined = (C_cqt_norm + C_cens_norm) / 2.0
+    C_final = librosa.util.normalize(C_combined, norm=2, axis=0)
+
+    return C_final.astype(np.float32)
+
+
+def make_windows(C_T):
     T = C_T.shape[0]
     padded = np.zeros((CONTEXT_BEFORE + T + CONTEXT_AFTER, 12), dtype=np.float32)
     padded[CONTEXT_BEFORE:CONTEXT_BEFORE + T] = C_T
@@ -118,256 +117,397 @@ def napravi_prozore(C_T):
     ], axis=0)
     return windows
 
-def ucitaj_labele_iz_jams(putanja_jams, vremena):
-    with open(putanja_jams, "r", encoding="utf-8") as f:
-        sadrzaj = json.load(f)
-    chord_anotacije = [a for a in sadrzaj["annotations"] if a.get("namespace") == "chord"]
-    if not chord_anotacije:
-        return np.full(len(vremena), LABEL_TO_IDX["N"], dtype=np.int64)
-    poceci, krajevi, labele_raw = [], [], []
-    for obs in chord_anotacije[0]["data"]:
-        pocetak = float(obs["time"])
-        poceci.append(pocetak)
-        krajevi.append(pocetak + float(obs["duration"]))
-        labele_raw.append(str(obs["value"]))
-    if poceci:
-        sort_idx = np.argsort(poceci)
-        poceci = [poceci[i] for i in sort_idx]
-        krajevi = [krajevi[i] for i in sort_idx]
-        labele_raw = [labele_raw[i] for i in sort_idx]
-    labele = []
-    for t in vremena:
-        idx = bisect.bisect_right(poceci, t) - 1
+
+def load_labels_from_jams(jams_path, times):
+    with open(jams_path, "r", encoding="utf-8") as f:
+        content = json.load(f)
+    chord_annotations = [a for a in content["annotations"] if a.get("namespace") == "chord"]
+    if not chord_annotations:
+        return np.full(len(times), LABEL_TO_IDX["N"], dtype=np.int64)
+    starts, ends, raw_labels = [], [], []
+    for obs in chord_annotations[0]["data"]:
+        start = float(obs["time"])
+        starts.append(start)
+        ends.append(start + float(obs["duration"]))
+        raw_labels.append(str(obs["value"]))
+    if starts:
+        sort_idx = np.argsort(starts)
+        starts = [starts[i] for i in sort_idx]
+        ends = [ends[i] for i in sort_idx]
+        raw_labels = [raw_labels[i] for i in sort_idx]
+    labels = []
+    for t in times:
+        idx = bisect.bisect_right(starts, t) - 1
         label = "N"
-        if idx >= 0 and poceci[idx] <= t < krajevi[idx]:
-            label = labele_raw[idx]
-        labele.append(chord_label_to_id(label))
-    return np.array(labele, dtype=np.int64)
+        if idx >= 0 and starts[idx] <= t < ends[idx]:
+            label = raw_labels[idx]
+        labels.append(chord_label_to_id(label))
+    return np.array(labels, dtype=np.int64)
 
-def _prebroji_frejmove(wav_fajlovi, folder_jams):
-    ukupno_frejmova = 0
-    vazeci = []
-    pbar = tqdm(wav_fajlovi, desc="Prolaz 1/2 | Prebrojavanje", unit="pesma", dynamic_ncols=True)
-    for wav_putanja in pbar:
-        naziv_sa_sufiksom = os.path.splitext(os.path.basename(wav_putanja))[0]
-        naziv_bez_sufiksa = naziv_sa_sufiksom.replace("_mic", "")
-        jams_putanja = os.path.join(folder_jams, naziv_bez_sufiksa + ".jams")
-        if not os.path.exists(jams_putanja):
-            continue
-        try:
-            y, sr = ucitaj_audio(wav_putanja)
-            C = audio_u_hromagram(y, sr)
-            T = C.shape[1]
-            ukupno_frejmova += T * 7
-            vazeci.append((wav_putanja, jams_putanja, naziv_sa_sufiksom))
-            pbar.set_postfix({"frejmova": f"{ukupno_frejmova:,}", "vazecih": len(vazeci)})
-        except Exception as e:
-            tqdm.write(f"  Preskacam {naziv_sa_sufiksom}: {e}")
-    return ukupno_frejmova, vazeci
 
-def prikupi_sve_podatke(folder_audio="audio_mono-mic", folder_jams="annotation",
-                        putanja_X="X_data.npy", putanja_y="y_data.npy"):
-    wav_fajlovi = sorted(glob.glob(os.path.join(folder_audio, "*.wav")))
+def _count_frames(valid_list):
+    total = 0
+    for wav_path, jams_path, _ in valid_list:
+        y, sr = load_audio(wav_path)
+        C = audio_to_chromagram(y, sr)
+        total += C.shape[1] * 7
+    return total
 
-    ukupno_frejmova, vazeci = _prebroji_frejmove(wav_fajlovi, folder_jams)
-    print(f"  Ukupno frejmova (sa augmentacijom): {ukupno_frejmova:,}")
 
-    X_mm = np.lib.format.open_memmap(putanja_X, mode="w+", dtype=np.float32, shape=(ukupno_frejmova, N_FEATURES))
-    y_mm = np.lib.format.open_memmap(putanja_y, mode="w+", dtype=np.int64,   shape=(ukupno_frejmova,))
+def collect_all_data(audio_folder="audio_mono-mic", jams_folder="annotation",
+                     path_X_train="X_train.npy", path_y_train="y_train.npy",
+                     path_X_val="X_val.npy", path_y_val="y_val.npy"):
+    wav_files = sorted(glob.glob(os.path.join(audio_folder, "*.wav")))
+
+    valid = []
+    for wav_path in wav_files:
+        name_with_suffix = os.path.splitext(os.path.basename(wav_path))[0]
+        name_without_suffix = name_with_suffix.replace("_mic", "")
+        jams_path = os.path.join(jams_folder, name_without_suffix + ".jams")
+        if os.path.exists(jams_path):
+            valid.append((wav_path, jams_path, name_with_suffix))
+
+    split_idx = int(len(valid) * 0.85)
+    valid_train = valid[:split_idx]
+    valid_val = valid[split_idx:]
+
+    print(f"Total songs: {len(valid)} -> Train: {len(valid_train)}, Validation: {len(valid_val)}")
+
+    print("Counting frames for Train set...")
+    frames_train = _count_frames(valid_train)
+    print("Counting frames for Validation set...")
+    frames_val = _count_frames(valid_val)
+
+    X_train_mm = np.lib.format.open_memmap(path_X_train, mode="w+", dtype=np.float32, shape=(frames_train, N_FEATURES))
+    y_train_mm = np.lib.format.open_memmap(path_y_train, mode="w+", dtype=np.int64,   shape=(frames_train,))
+
+    X_val_mm = np.lib.format.open_memmap(path_X_val, mode="w+", dtype=np.float32, shape=(frames_val, N_FEATURES))
+    y_val_mm = np.lib.format.open_memmap(path_y_val, mode="w+", dtype=np.int64,   shape=(frames_val,))
 
     offset = 0
-    pbar = tqdm(vazeci, desc="Prolaz 2/2 | Obrada     ", unit="pesma", dynamic_ncols=True)
-    for wav_putanja, jams_putanja, naziv in pbar:
-        pbar.set_postfix({"trenutna": naziv[-30:], "frejmova_zapisano": f"{offset:,}"})
+    pbar = tqdm(valid_train, desc="Writing Train      ", unit="song", dynamic_ncols=True)
+    for wav_path, jams_path, name in pbar:
         try:
-            y_audio, sr = ucitaj_audio(wav_putanja)
-            C = audio_u_hromagram(y_audio, sr)
-            vremena = np.arange(C.shape[1]) * HOP_LENGTH / sr
-            labele = ucitaj_labele_iz_jams(jams_putanja, vremena)
+            y_audio, sr = load_audio(wav_path)
+            C = audio_to_chromagram(y_audio, sr)
+            times = np.arange(C.shape[1]) * HOP_LENGTH / sr
+            labels = load_labels_from_jams(jams_path, times)
             T = C.shape[1]
             for step in range(-3, 4):
                 C_aug = np.roll(C.T, shift=step, axis=1)
-                X_aug = napravi_prozore(C_aug)
-                y_aug = transpozicija_labela(labele, step)
-                X_mm[offset:offset + T] = X_aug
-                y_mm[offset:offset + T] = y_aug
+                X_aug = make_windows(C_aug)
+                y_aug = transpose_labels(labels, step)
+                X_train_mm[offset:offset + T] = X_aug
+                y_train_mm[offset:offset + T] = y_aug
                 offset += T
         except Exception as e:
-            tqdm.write(f"  GRESKA ({naziv}): {e}")
+            tqdm.write(f"  ERROR TRAIN ({name}): {e}")
 
-    X_mm.flush()
-    y_mm.flush()
+    offset = 0
+    pbar = tqdm(valid_val, desc="Writing Validation ", unit="song", dynamic_ncols=True)
+    for wav_path, jams_path, name in pbar:
+        try:
+            y_audio, sr = load_audio(wav_path)
+            C = audio_to_chromagram(y_audio, sr)
+            times = np.arange(C.shape[1]) * HOP_LENGTH / sr
+            labels = load_labels_from_jams(jams_path, times)
+            T = C.shape[1]
+            for step in range(-3, 4):
+                C_aug = np.roll(C.T, shift=step, axis=1)
+                X_aug = make_windows(C_aug)
+                y_aug = transpose_labels(labels, step)
+                X_val_mm[offset:offset + T] = X_aug
+                y_val_mm[offset:offset + T] = y_aug
+                offset += T
+        except Exception as e:
+            tqdm.write(f"  ERROR VAL ({name}): {e}")
 
-    print("\n=== PROCENTUALNA DISTRIBUCIJA KLASA ===")
-    brojac = Counter(y_mm[:offset].tolist())
-    ukupno_frejmova_stvarno = offset
-    for i in range(N_CLASSES):
-        br = brojac.get(i, 0)
-        proc = (br / ukupno_frejmova_stvarno) * 100 if ukupno_frejmova_stvarno > 0 else 0
-        print(f"  Klasa {IDX_TO_LABEL[i]:<5}: {br:>8} frejmova ({proc:.2f}%)")
+    X_train_mm.flush()
+    y_train_mm.flush()
+    X_val_mm.flush()
+    y_val_mm.flush()
 
-    return X_mm[:offset], y_mm[:offset]
+    return X_train_mm, y_train_mm, X_val_mm, y_val_mm
 
-def ucitaj_kes(putanja_X="X_data.npy", putanja_y="y_data.npy"):
-    X = np.lib.format.open_memmap(putanja_X, mode="r")
-    y = np.lib.format.open_memmap(putanja_y, mode="r")
-    return X, y
 
-class RamovniDataset(Dataset):
-    def __init__(self, X, y):
-        self.X = X
-        self.y = y
-    def __len__(self):
-        return len(self.X)
-    def __getitem__(self, idx):
-        x = torch.tensor(self.X[idx], dtype=torch.float32)
-        label = torch.tensor(int(self.y[idx]), dtype=torch.long)
-        return x, label
+def load_cache(p_Xt="X_train.npy", p_yt="y_train.npy", p_Xv="X_val.npy", p_yv="y_val.npy"):
+    return (np.lib.format.open_memmap(p_Xt, mode="r"),
+            np.lib.format.open_memmap(p_yt, mode="r"),
+            np.lib.format.open_memmap(p_Xv, mode="r"),
+            np.lib.format.open_memmap(p_yv, mode="r"))
 
-class AkordMLP(nn.Module):
-    def __init__(self, n_classes):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(N_FEATURES, 512),
-            nn.BatchNorm1d(512),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(512, 256),
-            nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(256, 128),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(128, n_classes)
-        )
-    def forward(self, x):
-        return self.net(x)
 
-def treniraj_i_sacuvaj(X, y, putanja_modela="test_model.pt"):
-    uredjaj = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Uredjaj: {uredjaj}")
-    counts = np.bincount(np.array(y, dtype=np.int64), minlength=N_CLASSES).astype(np.float64)
+def shuffle_memmap(X_path, y_path, X_out, y_out, chunk_size=50_000):
+    X = np.lib.format.open_memmap(X_path, mode="r")
+    y = np.lib.format.open_memmap(y_path, mode="r")
+    N = len(y)
+
+    idx = np.random.permutation(N)
+
+    X_new = np.lib.format.open_memmap(X_out, mode="w+", dtype=X.dtype, shape=X.shape)
+    y_new = np.lib.format.open_memmap(y_out, mode="w+", dtype=y.dtype, shape=y.shape)
+
+    pbar = tqdm(range(0, N, chunk_size), desc="Shuffling", unit="chunk", dynamic_ncols=True)
+    write_pos = 0
+    for start in pbar:
+        batch_idx = np.sort(idx[start:start + chunk_size])
+        size = len(batch_idx)
+        X_new[write_pos:write_pos + size] = X[batch_idx]
+        y_new[write_pos:write_pos + size] = y[batch_idx]
+        write_pos += size
+
+    X_new.flush()
+    y_new.flush()
+    print(f"Shuffled memmap saved to {X_out} and {y_out}")
+
+
+def train_and_save(X_train, y_train, X_val, y_val, model_path="models/MLP_model.pt", model_type="MLP"):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
+
+    counts = np.bincount(np.array(y_train, dtype=np.int64), minlength=N_CLASSES).astype(np.float64)
     weights = 1.0 / np.sqrt(counts + 1.0)
     weights = weights / weights.mean()
-    dataset = RamovniDataset(X, y)
-    loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False,
-                        num_workers=0, pin_memory=False)
-    model = AkordMLP(n_classes=N_CLASSES).to(uredjaj)
-    kriterijum = nn.CrossEntropyLoss(weight=torch.tensor(weights, dtype=torch.float32).to(uredjaj))
-    optimizator = optim.Adam(model.parameters(), lr=STOPA_UCENJA, weight_decay=1e-4)
-    raspored = optim.lr_scheduler.StepLR(optimizator, step_size=25, gamma=0.5)
 
-    vreme_pocetka = time.time()
-    epoha_pbar = tqdm(range(1, EPOHE + 1), desc="Trening", unit="epoha", dynamic_ncols=True)
+    train_dataset = FrameDataset(X_train, y_train, model_type=model_type)
+    val_dataset = FrameDataset(X_val, y_val, model_type=model_type)
 
-    for epoha in epoha_pbar:
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0, pin_memory=False)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0, pin_memory=False)
+
+    if model_type.upper() == "CNN":
+        model = ChordCNN(n_classes=N_CLASSES).to(device)
+    else:
+        model = ChordMLP(n_classes=N_CLASSES).to(device)
+
+    criterion = nn.CrossEntropyLoss(weight=torch.tensor(weights, dtype=torch.float32).to(device))
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5)
+
+    best_val_loss = float("inf")
+    patience = 10
+    no_improve_count = 0
+
+    start_time = time.time()
+    epoch_pbar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch", dynamic_ncols=True)
+
+    for epoch in epoch_pbar:
         model.train()
-        ukupan_gubitak, tacno, ukupno = 0.0, 0, 0
+        total_loss, correct, total = 0.0, 0, 0
+        batch_pbar = tqdm(train_loader, desc=f"  Epoch {epoch:>3}/{EPOCHS} [Train]", unit="batch", leave=False, dynamic_ncols=True)
 
-        batch_pbar = tqdm(loader, desc=f"  Epoha {epoha:>3}/{EPOHE}", unit="batch",
-                          leave=False, dynamic_ncols=True)
         for Xb, yb in batch_pbar:
-            Xb, yb = Xb.to(uredjaj), yb.to(uredjaj)
-            optimizator.zero_grad()
-            izlaz = model(Xb)
-            gubitak = kriterijum(izlaz, yb)
-            gubitak.backward()
-            optimizator.step()
-            predvidjanja = izlaz.argmax(dim=1)
-            tacno += (predvidjanja == yb).sum().item()
-            ukupno += yb.size(0)
-            ukupan_gubitak += gubitak.item() * yb.size(0)
+            Xb, yb = Xb.to(device), yb.to(device)
+            optimizer.zero_grad()
+            output = model(Xb)
+            loss = criterion(output, yb)
+            loss.backward()
+            optimizer.step()
+
+            predictions = output.argmax(dim=1)
+            correct += (predictions == yb).sum().item()
+            total += yb.size(0)
+            total_loss += loss.item() * yb.size(0)
+
             batch_pbar.set_postfix({
-                "gubitak": f"{ukupan_gubitak/ukupno:.4f}",
-                "tacnost": f"{tacno/ukupno*100:.1f}%"
+                "loss": f"{total_loss/total:.4f}",
+                "acc": f"{correct/total*100:.1f}%"
             })
 
-        raspored.step()
-        proslo = time.time() - vreme_pocetka
-        preostalo = proslo / epoha * (EPOHE - epoha)
-        h, m = divmod(int(preostalo), 3600)
+        train_loss = total_loss / total
+        train_acc = (correct / total) * 100
+
+        model.eval()
+        val_loss, val_correct, val_total = 0.0, 0, 0
+        with torch.no_grad():
+            for Xb, yb in val_loader:
+                Xb, yb = Xb.to(device), yb.to(device)
+                output = model(Xb)
+                loss = criterion(output, yb)
+
+                predictions = output.argmax(dim=1)
+                val_correct += (predictions == yb).sum().item()
+                val_total += yb.size(0)
+                val_loss += loss.item() * yb.size(0)
+
+        validation_loss = val_loss / val_total
+        validation_acc = (val_correct / val_total) * 100
+
+        scheduler.step(validation_loss)
+        elapsed = time.time() - start_time
+        remaining = elapsed / epoch * (EPOCHS - epoch)
+        h, m = divmod(int(remaining), 3600)
         m, s = divmod(m, 60)
-        epoha_pbar.set_postfix({
-            "gubitak": f"{ukupan_gubitak/ukupno:.4f}",
-            "tacnost": f"{tacno/ukupno*100:.1f}%",
-            "lr": f"{raspored.get_last_lr()[0]:.2e}",
-            "preostalo": f"{h:02d}:{m:02d}:{s:02d}"
+
+        epoch_pbar.set_postfix({
+            "t_loss": f"{train_loss:.3f}",
+            "t_acc": f"{train_acc:.1f}%",
+            "v_loss": f"{validation_loss:.3f}",
+            "v_acc": f"{validation_acc:.1f}%",
+            "remaining": f"{h:02d}:{m:02d}:{s:02d}"
         })
 
-    torch.save(model.state_dict(), putanja_modela)
-    print(f"\nModel sacuvan: {putanja_modela}")
+        if validation_loss < best_val_loss:
+            best_val_loss = validation_loss
+            no_improve_count = 0
+            torch.save(model.state_dict(), model_path)
+        else:
+            no_improve_count += 1
+            if no_improve_count >= patience:
+                print(f"\n[Early Stopping] Training stopped at epoch {epoch} — validation loss did not improve for {patience} epochs.")
+                break
 
-def predvidi_akorde(putanja_audio, putanja_modela="test_model.pt"):
-    uredjaj = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = AkordMLP(n_classes=N_CLASSES).to(uredjaj)
-    model.load_state_dict(torch.load(putanja_modela, map_location=uredjaj))
+    print(f"\nBest model saved to: {model_path}")
+
+
+def are_related_chords(name1, name2):
+    if name1 == "N" or name2 == "N" or name1 == name2:
+        return False
+    root1 = name1[:-1] if name1.endswith("m") else name1
+    qual1 = "min" if name1.endswith("m") else "maj"
+    root2 = name2[:-1] if name2.endswith("m") else name2
+    qual2 = "min" if name2.endswith("m") else "maj"
+    if root1 not in PITCHES or root2 not in PITCHES:
+        return False
+    idx1 = PITCHES.index(root1)
+    idx2 = PITCHES.index(root2)
+    distance = (idx2 - idx1) % 12
+    if root1 == root2 and qual1 != qual2:
+        return True
+    if qual1 == "maj" and qual2 == "min" and distance == 9:
+        return True
+    if qual1 == "min" and qual2 == "maj" and distance == 3:
+        return True
+    if qual1 == qual2 and distance in (5, 7):
+        return True
+    return False
+
+
+def predict_chords(audio_path, model_path="models/MLP_model.pt", model_type="MLP"):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if model_type.upper() == "CNN":
+        model = ChordCNN(n_classes=N_CLASSES).to(device)
+    else:
+        model = ChordMLP(n_classes=N_CLASSES).to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
-    y, sr = ucitaj_audio(putanja_audio)
-    C = audio_u_hromagram(y, sr)
-    vremena = np.arange(C.shape[1]) * HOP_LENGTH / sr
-    X = napravi_prozore(C.T)
-    tensor_X = torch.from_numpy(X).to(uredjaj)
-
+    y, sr = load_audio(audio_path)
+    C = audio_to_chromagram(y, sr)
+    times = np.arange(C.shape[1]) * HOP_LENGTH / sr
+    X = make_windows(C.T)
+    tensor_X = torch.from_numpy(X).to(device)
+    if model_type.upper() == "CNN":
+        tensor_X = tensor_X.view(-1, 1, CONTEXT_TOTAL, 12)
     with torch.no_grad():
-        izlazi = model(tensor_X)
-        probs = F.softmax(izlazi, dim=1).cpu().numpy()
+        outputs = model(tensor_X)
+        probs = F.softmax(outputs, dim=1).cpu().numpy()
 
-    TRANS_MAT = np.full((N_CLASSES, N_CLASSES), (1.0 - 0.999) / (N_CLASSES - 1))
-    np.fill_diagonal(TRANS_MAT, 0.999)
+    STAY_PROB = 0.992
+    TRANS_MAT = np.zeros((N_CLASSES, N_CLASSES))
+    for i in range(N_CLASSES):
+        for j in range(N_CLASSES):
+            if i == j:
+                TRANS_MAT[i, j] = STAY_PROB
+            else:
+                src_name = IDX_TO_LABEL[i]
+                dst_name = IDX_TO_LABEL[j]
+                
+                if src_name == "N" or dst_name == "N":
+                    TRANS_MAT[i, j] = 0.005 / (N_CLASSES - 1)
+                    continue
+                
+                src_root = src_name[:-1] if src_name.endswith("m") else src_name
+                dst_root = dst_name[:-1] if dst_name.endswith("m") else dst_name
+                
+                if src_root in PITCHES and dst_root in PITCHES:
+                    idx1 = PITCHES.index(src_root)
+                    idx2 = PITCHES.index(dst_root)
+                    
+                    distance = min(abs(idx1 - idx2), 12 - abs(idx1 - idx2))
+                    
+                    if distance == 1:
+                        TRANS_MAT[i, j] = 1e-8
+                        continue
 
-    predvidjanja_id = librosa.sequence.viterbi_discriminative(probs.T, TRANS_MAT)
+                if are_related_chords(src_name, dst_name):
+                    TRANS_MAT[i, j] = 0.006
+                else:
+                    TRANS_MAT[i, j] = 0.0001
+                    
+    TRANS_MAT = TRANS_MAT / TRANS_MAT.sum(axis=1, keepdims=True)
 
-    T = len(predvidjanja_id)
-    PROZOR = 86
-    pad = PROZOR // 2
-    padded_pred = np.pad(predvidjanja_id, (pad, pad), mode="edge")
-    izgladjeno = np.array([
-        scipy_mode(padded_pred[i:i + PROZOR], keepdims=True).mode[0]
+    prediction_ids = librosa.sequence.viterbi_discriminative(probs.T, TRANS_MAT)
+
+    T = len(prediction_ids)
+    WINDOW = 86
+    pad = WINDOW // 2
+    padded_pred = np.pad(prediction_ids, (pad, pad), mode="edge")
+    smoothed = np.array([
+        scipy_mode(padded_pred[i:i + WINDOW], keepdims=True).mode[0]
         for i in range(T)
     ], dtype=np.int64)
 
-    PRAG_POUZDANOSTI = 0.2
-    filtrirano_id = []
-    trenutni = izgladjeno[0]
+    CONFIDENCE_THRESHOLD = 0.4
+    filtered_ids = []
+    current = smoothed[0]
+    for i, idx in enumerate(smoothed):
+        if idx != current and probs[i, idx] > CONFIDENCE_THRESHOLD:
+            current = idx
+        filtered_ids.append(current)
+    smoothed = np.array(filtered_ids)
 
-    for i, idx in enumerate(izgladjeno):
-        if idx != trenutni and probs[i, idx] > PRAG_POUZDANOSTI:
-            trenutni = idx
-        filtrirano_id.append(trenutni)
-
-    izgladjeno = np.array(filtrirano_id)
-
-    print("\nPredvidjeni akordi kroz vreme:")
+    print("\nPredicted chords over time:")
     print("-" * 50)
-    rezultat = []
-    prethodni = None
-    for i, idx in enumerate(izgladjeno):
-        akord = IDX_TO_LABEL[idx]
-        if akord != prethodni:
-            rezultat.append({
-                "time": float(vremena[i]),
-                "chord": akord,
+    result = []
+    previous = None
+    for i, idx in enumerate(smoothed):
+        chord = IDX_TO_LABEL[idx]
+        if chord != previous:
+            result.append({
+                "time": float(times[i]),
+                "chord": chord,
                 "confidence": float(probs[i, idx]),
             })
-            print(f"  {vremena[i]:6.2f}s  ->  {akord:<6}  (pouzdanost: {probs[i, idx]:.2f})")
-            prethodni = akord
+            print(f"  {times[i]:6.2f}s  ->  {chord:<6}  (confidence: {probs[i, idx]:.2f})")
+            previous = chord
+    return result
 
-    return rezultat
 
 if __name__ == "__main__":
-    MODEL = "test_model.pt"
-    KES_X, KES_Y = r"D:\chord_kes\X_data.npy", r"D:\chord_kes\y_data.npy"
+    MODEL = "models/CNN_model.pt"
+    SELECTED_MODEL = "CNN"
+
+    CACHE_X_TRAIN, CACHE_Y_TRAIN = r"D:\chord_kes\X_train.npy", r"D:\chord_kes\y_train.npy"
+    CACHE_X_VAL, CACHE_Y_VAL = r"D:\chord_kes\X_val.npy", r"D:\chord_kes\y_val.npy"
+
+    SHUFFLED_X_TRAIN = r"D:\chord_kes\X_train_shuffled.npy"
+    SHUFFLED_Y_TRAIN = r"D:\chord_kes\y_train_shuffled.npy"
+
     if not os.path.exists(MODEL):
-        if os.path.exists(KES_X) and os.path.exists(KES_Y):
-            print("Ucitavam podatke sa diska (memmap)...")
-            svi_X, svi_y = ucitaj_kes(KES_X, KES_Y)
+        if (os.path.exists(CACHE_X_TRAIN) and os.path.exists(CACHE_Y_TRAIN) and
+            os.path.exists(CACHE_X_VAL) and os.path.exists(CACHE_Y_VAL)):
+
+            if not os.path.exists(SHUFFLED_X_TRAIN) or not os.path.exists(SHUFFLED_Y_TRAIN):
+                print("Shuffling train data (one-time operation)...")
+                shuffle_memmap(CACHE_X_TRAIN, CACHE_Y_TRAIN, SHUFFLED_X_TRAIN, SHUFFLED_Y_TRAIN)
+
+            print("Loading cached data from disk (memmap)...")
+            X_tr, y_tr, X_va, y_va = load_cache(SHUFFLED_X_TRAIN, SHUFFLED_Y_TRAIN, CACHE_X_VAL, CACHE_Y_VAL)
         else:
-            svi_X, svi_y = prikupi_sve_podatke(putanja_X=KES_X, putanja_y=KES_Y)
-        treniraj_i_sacuvaj(svi_X, svi_y, MODEL)
+            print("Generating new cache with log scaling and Train/Val split...")
+            X_tr, y_tr, X_va, y_va = collect_all_data(
+                path_X_train=CACHE_X_TRAIN, path_y_train=CACHE_Y_TRAIN,
+                path_X_val=CACHE_X_VAL, path_y_val=CACHE_Y_VAL
+            )
+            print("Shuffling train data (one-time operation)...")
+            shuffle_memmap(CACHE_X_TRAIN, CACHE_Y_TRAIN, SHUFFLED_X_TRAIN, SHUFFLED_Y_TRAIN)
+            X_tr = np.lib.format.open_memmap(SHUFFLED_X_TRAIN, mode="r")
+            y_tr = np.lib.format.open_memmap(SHUFFLED_Y_TRAIN, mode="r")
+
+        train_and_save(X_tr, y_tr, X_va, y_va, MODEL, SELECTED_MODEL)
     else:
-        print(f"Model vec postoji ({MODEL}). Obrisi ga ako hoces da treniras iznova.")
-    print("\n=== PREDIKCIJA ===")
-    nova_pesma = input("Unesi putanju do audio fajla za predikciju: ").strip()
-    predvidi_akorde(nova_pesma, MODEL)
+        print(f"Model already exists ({MODEL}). Delete it if you want to retrain.")
+
+    print("\n=== PREDICTION ===")
+    new_song = input("Enter path to audio file for prediction: ").strip()
+    predict_chords(new_song, MODEL, SELECTED_MODEL)

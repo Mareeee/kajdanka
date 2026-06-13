@@ -59,9 +59,9 @@ export class SongAnalyzeComponent {
 
     this.analyzeService.analyze(link, this.naslov.trim(), this.izvodjac.trim()).subscribe({
       next: (res) => {
-        this.rezultat = res.rezultat;
-        this.naslov = res.naslov;
-        this.izvodjac = res.izvodjac;
+        this.rezultat = res.result;
+        this.naslov = res.title;
+        this.izvodjac = res.performer;
         this.analyzing = false;
         this.saveSong();
       },
