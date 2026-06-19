@@ -1,22 +1,76 @@
-<section class="top">
+<section class="hero">
     <img src="app/assets/notebook.jpg" alt="notebook">
-
-</section>
-
-<section class="featured-section">
-    <div class="container">
-        @if (loading) {
-        <div class="center-state">
-            <mat-spinner diameter="40"></mat-spinner>
+    <div class="hero-overlay">
+        <div class="hero-content">
+            <h1 class="hero-title">Kajdanka</h1>
+            <p class="hero-subtitle">Istražite hiljade obrađenih pesama sa akordima i tekstovima</p>
         </div>
-        }
-
-        @if (!loading) {
-        <div class="songs-grid-home">
-            @for (song of featuredSongs; track song.id) {
-            <app-song-card [song]="song" />
-            }
-        </div>
-        }
+        <button class="scroll-down-btn" (click)="scrollToCarousel()" aria-label="Skroluj dole">
+            <mat-icon>keyboard_arrow_down</mat-icon>
+        </button>
     </div>
 </section>
+
+<div class="content" #contentSection>
+
+    <section class="recommended-songs" #carouselSection>
+        <h2 class="section-title">Preporučujemo</h2>
+
+        @if (loading) {
+        <div class="global-spinner">
+            <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        }
+
+        @if (!loading && recommended.length > 0) {
+        <div class="marquee-outer">
+            <div class="marquee-inner" #marqueeInner>
+                @for (song of displaySongs; track $index) {
+                <div class="marquee-item">
+                    <app-song-card [song]="song" />
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </section>
+    <br>
+
+    <section class="recommended-tools">
+        <h2 class="section-title-2">Isprobajte naše alate</h2>
+
+        <div class="tools-grid">
+            <div class="tool-card" [routerLink]="['/chords']">
+                <div class="tool-img-wrap">
+                    <img src="app/assets/chord.jpg" alt="chords">
+                </div>
+                <div class="tool-info">
+                    <span class="tool-name">Akordi</span>
+                    <span class="tool-desc">Pretraži i nauči akorde</span>
+                </div>
+            </div>
+
+            <div class="tool-card" [routerLink]="['/tuner']">
+                <div class="tool-img-wrap">
+                    <img src="app/assets/tuner.jpg" alt="tuner">
+                </div>
+                <div class="tool-info">
+                    <span class="tool-name">Štimer</span>
+                    <span class="tool-desc">Podesi instrument online</span>
+                </div>
+            </div>
+
+            <div class="tool-card" [routerLink]="['/analyze']">
+                <div class="tool-img-wrap">
+                    <img src="app/assets/ai.jpg" alt="ai">
+                </div>
+                <div class="tool-info">
+                    <span class="tool-name">AI Analiza</span>
+                    <span class="tool-desc">Automatsko prepoznavanje akorda</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+<app-footer />

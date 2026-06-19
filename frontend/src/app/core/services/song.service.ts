@@ -40,6 +40,22 @@ export class SongService {
         return this.http.get<Song[]>(`/songs/my`);
     }
 
+    getTrending(count = 9): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/trending`, { params: { count } });
+    }
+
+    getAllTimeTop(count = 9): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/all-time`, { params: { count } });
+    }
+
+    getRecommended(): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/recommended`);
+    }
+
+    getRecentlyViewed(): Observable<Song[]> {
+        return this.http.get<Song[]>(`/songs/recently-viewed`);
+    }
+
     createSong(payload: Song): Observable<Song> {
         return this.http.post<Song>('/songs', payload);
     }
