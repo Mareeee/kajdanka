@@ -53,28 +53,56 @@
         </div>
     </div>
 
-    <!-- <div class="transpose-bar">
+    <div class="transpose-bar">
         <div class="container">
             <span class="transpose-label">
                 <mat-icon>tune</mat-icon>
                 Transpozicija:
-                <strong>{{ transposeLabel }}</strong>
             </span>
 
             <div class="transpose-controls">
-                <button mat-icon-button (click)="changeSemitones(-1)" [disabled]="semitones === -6">
+                <button mat-icon-button (click)="changeSemitones(-1)" [disabled]="semitones === -12">
                     <mat-icon>remove</mat-icon>
                 </button>
                 <span class="semitone-display">{{ semitones > 0 ? '+' : '' }}{{ semitones }}</span>
-                <button mat-icon-button (click)="changeSemitones(1)" [disabled]="semitones === 6">
+                <button mat-icon-button (click)="changeSemitones(1)" [disabled]="semitones === 12">
                     <mat-icon>add</mat-icon>
                 </button>
-                <button mat-stroked-button (click)="resetTranspose()" [disabled]="semitones === 0">
-                    Resetuj
+                <button mat-icon-button (click)="resetTranspose()">
+                    <mat-icon>replay</mat-icon>
                 </button>
             </div>
+            <div class="vertical-line-box"></div>
+
+            <span class="transpose-label">
+                Prikaz:
+            </span>
+            <div class="notation-controls">
+                <button mat-stroked-button [class.active]="notation === 'sharp'" (click)="setNotation('sharp')">
+                    #
+                </button>
+                <button mat-stroked-button [class.active]="notation === 'flat'" (click)="setNotation('flat')">
+                    b
+                </button>
+            </div>
+            <div class="vertical-line-box"></div>
+
+            <span class="transpose-label">
+                Scroll:
+            </span>
+            <button mat-stroked-button class="scroll-button" [class.active]="scrolling" (click)="toggleScroll()">
+                <mat-icon>{{ scrolling ? 'pause' : 'play_arrow' }}</mat-icon>
+            </button>
+            <div class="vertical-line-box"></div>
+
+            <span class="transpose-label">
+                Preuzmi:
+            </span>
+            <button mat-stroked-button class="pdf-button" (click)="downloadPdf()">
+                <mat-icon>picture_as_pdf</mat-icon>
+            </button>
         </div>
-    </div> -->
+    </div>
 
     <div class="chords-legend container">
         <strong>Akordi:</strong>
