@@ -1,28 +1,36 @@
-const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+export type ChordNotation = 'sharp' | 'flat';
+
+const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 const ENHARMONIC: Record<string, string> = {
     'Db': 'C#', 'Eb': 'D#', 'Fb': 'E',
     'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B'
 };
 
-const CHORD_SUFFIXES = [
-    'maj7', 'maj9', 'maj', 'min7', 'min9', 'min',
-    'dim7', 'dim', 'aug7', 'aug',
-    'm7b5', 'sus4', 'sus2', 'sus',
-    'add9', 'add11',
-    '7b9', '7#9', '7#5', '7b5',
-    '9', '11', '13',
-    'm7', 'm9', 'm6', 'm',
-    '7', '6', '5', '4',
-    '#',
-].join('|');
-
-const CHORD_RE = new RegExp(
-    `^([A-GH][#b]?(?:${CHORD_SUFFIXES})?)(?:\\/[A-GH][#b]?)?$`
-);
+const CHORD_RE = /^[A-H](#|b)?[^\s\/]*(\/[A-H](#|b)?[^\s]*)?$/;
 
 function isChord(token: string): boolean {
     return CHORD_RE.test(token.trim());
+}
+
+function noteToIndex(note: string): number {
+    const normalized = ENHARMONIC[note] || note;
+    return NOTES_SHARP.indexOf(normalized);
+}
+
+export function changeNotation(chord: string, notation: ChordNotation): string {
+    const match = chord.match(/^([A-G][#b]?)(.*)$/);
+    if (!match) return chord;
+
+    const root = match[1];
+    const rest = match[2] || '';
+
+    const idx = noteToIndex(root);
+    if (idx === -1) return chord;
+
+    const newRoot = notation === 'flat' ? NOTES_FLAT[idx] : NOTES_SHARP[idx];
+    return `${newRoot}${rest}`;
 }
 
 function isChordLine(line: string): boolean {
@@ -42,14 +50,14 @@ export function transposeChord(chord: string, semitones: number): string {
     const quality = match[2] || '';
     const bassNote = match[4] ? (ENHARMONIC[match[4]] || match[4]) : null;
 
-    const rootIdx = NOTES.indexOf(root);
+    const rootIdx = NOTES_SHARP.indexOf(root);
     if (rootIdx === -1) return chord;
 
-    const newRoot = NOTES[(rootIdx + semitones + 120) % 12];
+    const newRoot = NOTES_SHARP[(rootIdx + semitones + 120) % 12];
 
     if (bassNote) {
-        const bassIdx = NOTES.indexOf(bassNote);
-        const newBass = NOTES[(bassIdx + semitones + 120) % 12];
+        const bassIdx = NOTES_SHARP.indexOf(bassNote);
+        const newBass = NOTES_SHARP[(bassIdx + semitones + 120) % 12];
         return `${newRoot}${quality}/${newBass}`;
     }
 
@@ -62,11 +70,25 @@ export function transposeLyrics(lyrics: string, semitones: number): string {
         .split('\n')
         .map(line => {
             if (isChordLine(line)) {
-                return line.replace(/[A-GH][#b]?(?:\S*)?/g, token =>
-                    isChord(token) ? transposeChord(token, semitones) : token
-                );
+                return line.split(/(\s+)/).map(part =>
+                    isChord(part) ? transposeChord(part, semitones) : part
+                ).join('');
             }
             return line.replace(/\[([^\]]+)\]/g, (_, chord) => `[${transposeChord(chord, semitones)}]`);
+        })
+        .join('\n');
+}
+
+export function applyNotation(lyrics: string, notation: ChordNotation): string {
+    return lyrics
+        .split('\n')
+        .map(line => {
+            if (isChordLine(line)) {
+                return line.split(/(\s+)/).map(part =>
+                    isChord(part) ? changeNotation(part, notation) : part
+                ).join('');
+            }
+            return line.replace(/\[([^\]]+)\]/g, (_, chord) => `[${changeNotation(chord, notation)}]`);
         })
         .join('\n');
 }

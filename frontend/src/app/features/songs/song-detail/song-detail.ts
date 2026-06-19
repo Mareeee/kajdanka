@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,12 +14,12 @@ import { SetlistService } from '../../../core/services/setlist.service';
 import { Song } from '../../../core/models/song.model';
 import { Setlist } from '../../../core/models/setlist.model';
 import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
-import { transposeLyrics, extractUniqueChords } from '../../../core/utils/transpose.util';
+import { transposeLyrics, extractUniqueChords, applyNotation, ChordNotation } from '../../../core/utils/transpose.util';
+import { downloadSongPdf } from '../../../core/utils/pdf.util';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { LikeService } from '../../../core/services/like.service';
 import { CommentService } from '../../../core/services/comment.service';
-import { Comment } from '../../../core/models/comment.model';
 
 @Component({
   selector: 'app-song-detail',
@@ -33,10 +33,14 @@ import { Comment } from '../../../core/models/comment.model';
     MatMenuModule, ChordDisplayComponent, ReactiveFormsModule, FormsModule
   ]
 })
-export class SongDetailComponent implements OnInit {
+export class SongDetailComponent implements OnInit, OnDestroy {
   song: Song | null = null;
   loading = true;
   semitones = 0;
+  notation: ChordNotation = 'sharp';
+  scrolling = false;
+  private scrollInterval: any = null;
+  private autoScrolling = false;
   liked = false;
   commentInput: string = '';
   setlists: Setlist[] = [];
@@ -76,7 +80,12 @@ export class SongDetailComponent implements OnInit {
 
   get transposedLyrics(): string {
     if (!this.song?.lyrics) return '';
-    return transposeLyrics(this.song.lyrics, this.semitones);
+    const transposed = transposeLyrics(this.song.lyrics, this.semitones);
+    return applyNotation(transposed, this.notation);
+  }
+
+  setNotation(notation: ChordNotation): void {
+    this.notation = notation;
   }
 
   get transposeLabel(): string {
@@ -90,11 +99,49 @@ export class SongDetailComponent implements OnInit {
   }
 
   changeSemitones(delta: number): void {
-    this.semitones = Math.max(-6, Math.min(6, this.semitones + delta));
+    this.semitones = Math.max(-12, Math.min(12, this.semitones + delta));
   }
 
   resetTranspose(): void {
     this.semitones = 0;
+  }
+
+  toggleScroll(): void {
+    if (this.scrolling) {
+      clearInterval(this.scrollInterval);
+      this.scrolling = false;
+      return;
+    }
+
+    this.scrolling = true;
+    this.scrollInterval = setInterval(() => {
+      this.autoScrolling = true;
+      window.scrollBy(0, 1);
+    }, 50);
+  }
+
+  downloadPdf(): void {
+    if (!this.song) return;
+    downloadSongPdf(this.song, this.transposedLyrics);
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (this.autoScrolling) {
+      this.autoScrolling = false;
+      return;
+    }
+
+    if (this.scrolling) {
+      clearInterval(this.scrollInterval);
+      this.scrolling = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollInterval) {
+      clearInterval(this.scrollInterval);
+    }
   }
 
   get isOwner(): boolean {
