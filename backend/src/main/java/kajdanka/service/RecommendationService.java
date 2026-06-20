@@ -2,11 +2,11 @@ package kajdanka.service;
 
 import kajdanka.dto.response.SongSummaryDto;
 import kajdanka.entity.Song;
-import kajdanka.entity.SongViewHistory;
+import kajdanka.entity.SongScore;
 import kajdanka.repository.EventLogRepository;
-import kajdanka.repository.EventLogRepository.GenreArtistAggregateRow;
+import kajdanka.repository.EventLogRepository.SongEventAggregateRow;
 import kajdanka.repository.SongRepository;
-import kajdanka.repository.SongViewHistoryRepository;
+import kajdanka.repository.SongScoreRepository;
 import kajdanka.security.CurrentActor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -15,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,96 +28,154 @@ import java.util.stream.Collectors;
 public class RecommendationService {
 
     private static final int PREFERENCE_LOOKBACK_DAYS = 30;
+    private static final int SEED_LIMIT = 5;
     private static final int CANDIDATE_FETCH_SIZE = 40;
     private static final int RESULT_LIMIT = 10;
 
     private final EventLogRepository eventLogRepository;
-    private final SongViewHistoryRepository songViewHistoryRepository;
     private final SongRepository songRepository;
+    private final SongScoreRepository songScoreRepository;
 
     public List<SongSummaryDto> recommend() {
         Long userId = CurrentActor.getUserId();
         String anonToken = CurrentActor.getAnonToken();
 
-        List<GenreArtistAggregateRow> preferences = fetchPreferences(userId, anonToken);
-        Set<Long> seenIds = fetchSeenIds(userId, anonToken);
+        LinkedHashSet<Long> collected = new LinkedHashSet<>();
+        List<Song> result = new ArrayList<>();
 
-        if (preferences.isEmpty()) {
-            return fallbackToFeatured(seenIds);
+        Map<Long, Double> personalScores = computePersonalScores(userId, anonToken);
+        if (!personalScores.isEmpty()) {
+            addPersonalCandidates(personalScores, collected, result);
+        }
+        if (result.size() < RESULT_LIMIT) {
+            addPopularCandidates(collected, result);
+        }
+        if (result.size() < RESULT_LIMIT) {
+            addFeaturedCandidates(collected, result);
         }
 
-        return buildRecommendations(preferences, seenIds);
+        return result.stream()
+                .limit(RESULT_LIMIT)
+                .map(this::toSummaryDto)
+                .toList();
     }
 
-    private List<GenreArtistAggregateRow> fetchPreferences(Long userId, String anonToken) {
+    private Map<Long, Double> computePersonalScores(Long userId, String anonToken) {
         LocalDateTime since = LocalDateTime.now().minusDays(PREFERENCE_LOOKBACK_DAYS);
-        if (userId != null) {
-            return eventLogRepository.findTopGenresAndArtistsForUser(userId, since);
-        }
-        if (anonToken != null) {
-            return eventLogRepository.findTopGenresAndArtistsForGuest(anonToken, since);
-        }
-        return List.of();
-    }
+        boolean authenticated = userId != null;
 
-    private Set<Long> fetchSeenIds(Long userId, String anonToken) {
-        List<SongViewHistory> history;
+        List<SongEventAggregateRow> rows;
         if (userId != null) {
-            history = songViewHistoryRepository.findRecentByUserId(userId);
+            rows = eventLogRepository.aggregateForUser(userId, since);
         } else if (anonToken != null) {
-            history = songViewHistoryRepository.findRecentByAnonToken(anonToken);
+            rows = eventLogRepository.aggregateForGuest(anonToken, since);
         } else {
-            return Set.of();
+            return Map.of();
         }
-        return history.stream()
-                .map(h -> h.getSong().getId())
-                .collect(Collectors.toSet());
+
+        Map<Long, Double> scores = new HashMap<>();
+        for (SongEventAggregateRow row : rows) {
+            double weight = EventWeights.weightFor(row.getEventType(), authenticated);
+            scores.merge(row.getSongId(), row.getHits() * weight, Double::sum);
+        }
+        return scores;
     }
 
-    private List<SongSummaryDto> buildRecommendations(
-            List<GenreArtistAggregateRow> preferences,
-            Set<Long> seenIds
+    private void addPersonalCandidates(
+            Map<Long, Double> personalScores,
+            LinkedHashSet<Long> collected,
+            List<Song> result
     ) {
-        Set<Long> collected = new LinkedHashSet<>();
-        List<Song> candidates = new ArrayList<>();
+        List<Long> orderedIds = personalScores.entrySet().stream()
+                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .toList();
 
-        for (GenreArtistAggregateRow pref : preferences) {
-            if (candidates.size() >= CANDIDATE_FETCH_SIZE) {
-                break;
+        Map<Long, Song> songsById = songRepository.findAllById(orderedIds).stream()
+                .collect(Collectors.toMap(Song::getId, song -> song));
+
+        List<Song> orderedSongs = orderedIds.stream()
+                .map(songsById::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        for (Song song : orderedSongs) {
+            if (result.size() >= RESULT_LIMIT) {
+                return;
+            }
+            if (collected.add(song.getId())) {
+                result.add(song);
+            }
+        }
+
+        List<Song> seeds = orderedSongs.stream().limit(SEED_LIMIT).toList();
+        for (Song seed : seeds) {
+            if (result.size() >= RESULT_LIMIT) {
+                return;
             }
             List<Song> byGenre = songRepository.search(
-                    null, pref.getGenre(), null, PageRequest.of(0, CANDIDATE_FETCH_SIZE)
+                    null, seed.getGenre(), null, PageRequest.of(0, CANDIDATE_FETCH_SIZE)
             ).getContent();
-
             List<Song> byArtist = songRepository.search(
-                    null, null, pref.getArtist(), PageRequest.of(0, CANDIDATE_FETCH_SIZE)
+                    null, null, seed.getArtist(), PageRequest.of(0, CANDIDATE_FETCH_SIZE)
             ).getContent();
 
             for (Song song : byGenre) {
-                if (!seenIds.contains(song.getId()) && collected.add(song.getId())) {
-                    candidates.add(song);
+                if (result.size() >= RESULT_LIMIT) {
+                    return;
+                }
+                if (collected.add(song.getId())) {
+                    result.add(song);
                 }
             }
             for (Song song : byArtist) {
-                if (!seenIds.contains(song.getId()) && collected.add(song.getId())) {
-                    candidates.add(song);
+                if (result.size() >= RESULT_LIMIT) {
+                    return;
+                }
+                if (collected.add(song.getId())) {
+                    result.add(song);
                 }
             }
         }
-
-        return candidates.stream()
-                .limit(RESULT_LIMIT)
-                .map(this::toSummaryDto)
-                .toList();
     }
 
-    private List<SongSummaryDto> fallbackToFeatured(Set<Long> seenIds) {
-        return songRepository.findFeatured(PageRequest.of(0, CANDIDATE_FETCH_SIZE))
-                .stream()
-                .filter(s -> !seenIds.contains(s.getId()))
-                .limit(RESULT_LIMIT)
-                .map(this::toSummaryDto)
-                .toList();
+    private void addPopularCandidates(LinkedHashSet<Long> collected, List<Song> result) {
+        List<Song> trending = songScoreRepository.findTrending(PageRequest.of(0, CANDIDATE_FETCH_SIZE))
+                .map(SongScore::getSong)
+                .getContent();
+        List<Song> allTime = songScoreRepository.findAllTimeTop(PageRequest.of(0, CANDIDATE_FETCH_SIZE))
+                .map(SongScore::getSong)
+                .getContent();
+
+        int max = Math.max(trending.size(), allTime.size());
+        for (int i = 0; i < max && result.size() < RESULT_LIMIT; i++) {
+            if (i < trending.size()) {
+                Song song = trending.get(i);
+                if (collected.add(song.getId())) {
+                    result.add(song);
+                }
+            }
+            if (result.size() >= RESULT_LIMIT) {
+                break;
+            }
+            if (i < allTime.size()) {
+                Song song = allTime.get(i);
+                if (collected.add(song.getId())) {
+                    result.add(song);
+                }
+            }
+        }
+    }
+
+    private void addFeaturedCandidates(LinkedHashSet<Long> collected, List<Song> result) {
+        for (Song song : songRepository.findFeatured(PageRequest.of(0, CANDIDATE_FETCH_SIZE))) {
+            if (result.size() >= RESULT_LIMIT) {
+                break;
+            }
+            if (collected.add(song.getId())) {
+                result.add(song);
+            }
+        }
     }
 
     private SongSummaryDto toSummaryDto(Song song) {

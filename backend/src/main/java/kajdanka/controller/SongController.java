@@ -167,10 +167,7 @@ public class SongController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update song", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<SongSummaryDto> updateSong(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateSongRequest request
-    ) {
+    public ResponseEntity<SongSummaryDto> updateSong(@PathVariable Long id, @Valid @RequestBody UpdateSongRequest request) {
         try {
             return ResponseEntity.ok(songService.updateSong(id, request));
         } catch (NoSuchElementException e) {

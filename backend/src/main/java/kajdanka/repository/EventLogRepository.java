@@ -30,25 +30,23 @@ public interface EventLogRepository extends JpaRepository<EventLog, Long> {
     List<EventAggregateRow> aggregateAllTime();
 
     @Query("""
-        SELECT e.song.genre AS genre, e.song.artist AS artist, COUNT(e) AS hits
+        SELECT e.song.id AS songId, e.eventType AS eventType, COUNT(e) AS hits
         FROM EventLog e
         WHERE e.user.id = :userId AND e.createdAt >= :since
-        GROUP BY e.song.genre, e.song.artist
-        ORDER BY COUNT(e) DESC
+        GROUP BY e.song.id, e.eventType
         """)
-    List<GenreArtistAggregateRow> findTopGenresAndArtistsForUser(
+    List<SongEventAggregateRow> aggregateForUser(
             @Param("userId") Long userId,
             @Param("since") LocalDateTime since
     );
 
     @Query("""
-        SELECT e.song.genre AS genre, e.song.artist AS artist, COUNT(e) AS hits
+        SELECT e.song.id AS songId, e.eventType AS eventType, COUNT(e) AS hits
         FROM EventLog e
         WHERE e.anonToken = :anonToken AND e.createdAt >= :since
-        GROUP BY e.song.genre, e.song.artist
-        ORDER BY COUNT(e) DESC
+        GROUP BY e.song.id, e.eventType
         """)
-    List<GenreArtistAggregateRow> findTopGenresAndArtistsForGuest(
+    List<SongEventAggregateRow> aggregateForGuest(
             @Param("anonToken") String anonToken,
             @Param("since") LocalDateTime since
     );
@@ -60,9 +58,9 @@ public interface EventLogRepository extends JpaRepository<EventLog, Long> {
         Long getAuthCount();
     }
 
-    interface GenreArtistAggregateRow {
-        String getGenre();
-        String getArtist();
+    interface SongEventAggregateRow {
+        Long getSongId();
+        kajdanka.entity.EventType getEventType();
         Long getHits();
     }
 }

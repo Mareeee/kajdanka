@@ -47,6 +47,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
   ngOnInit(): void {
     this.songService.getRecommended().subscribe({
       next: (results) => {
+        console.log("preporučene: ", results)
         this.recommended = results;
         const copies = Math.max(4, Math.ceil((window?.innerWidth * 3 || 4000) / (results.length * SLIDE_WIDTH)));
         this.displaySongs = Array.from({ length: copies }, () => results).flat();

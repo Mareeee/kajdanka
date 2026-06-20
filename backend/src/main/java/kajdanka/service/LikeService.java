@@ -1,5 +1,6 @@
 package kajdanka.service;
 
+import kajdanka.entity.EventType;
 import kajdanka.entity.Like;
 import kajdanka.entity.Song;
 import kajdanka.entity.User;
@@ -22,6 +23,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final SongRepository songRepository;
     private final UserRepository userRepository;
+    private final EventService eventService;
 
     @Transactional
     public Boolean likeSong(Long id) {
@@ -41,6 +43,7 @@ public class LikeService {
                 .build();
 
         likeRepository.save(likeEntity);
+        eventService.recordEvent(song.getId(), EventType.LIKE);
         return true;
     }
 

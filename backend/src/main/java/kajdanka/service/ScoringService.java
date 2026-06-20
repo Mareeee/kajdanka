@@ -1,6 +1,5 @@
 package kajdanka.service;
 
-import kajdanka.entity.EventType;
 import kajdanka.entity.Song;
 import kajdanka.entity.SongScore;
 import kajdanka.repository.EventLogRepository;
@@ -20,13 +19,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class ScoringService {
-
-    private static final double WEIGHT_VIEW_ANON   = 1.0;
-    private static final double WEIGHT_VIEW_AUTH   = 2.0;
-    private static final double WEIGHT_LIKE        = 5.0;
-    private static final double WEIGHT_COMMENT     = 4.0;
-    private static final double WEIGHT_PRINT       = 3.0;
-    private static final double WEIGHT_SEARCH_CLICK = 2.0;
 
     private final EventLogRepository eventLogRepository;
     private final SongScoreRepository songScoreRepository;
@@ -53,27 +45,11 @@ public class ScoringService {
     private Map<Long, Double> aggregate(List<EventAggregateRow> rows) {
         Map<Long, Double> scores = new HashMap<>();
         for (EventAggregateRow row : rows) {
-            double contribution;
-            if (row.getEventType() == EventType.VIEW) {
-                contribution = row.getAnonCount() * WEIGHT_VIEW_ANON
-                        + row.getAuthCount() * WEIGHT_VIEW_AUTH;
-            } else {
-                double weight = resolveWeight(row.getEventType());
-                contribution = (row.getAnonCount() + row.getAuthCount()) * weight;
-            }
+            double contribution = row.getAnonCount() * EventWeights.weightFor(row.getEventType(), false)
+                    + row.getAuthCount() * EventWeights.weightFor(row.getEventType(), true);
             scores.merge(row.getSongId(), contribution, Double::sum);
         }
         return scores;
-    }
-
-    private double resolveWeight(EventType eventType) {
-        return switch (eventType) {
-            case VIEW         -> WEIGHT_VIEW_ANON;
-            case LIKE         -> WEIGHT_LIKE;
-            case COMMENT      -> WEIGHT_COMMENT;
-            case PRINT        -> WEIGHT_PRINT;
-            case SEARCH_CLICK -> WEIGHT_SEARCH_CLICK;
-        };
     }
 
     private void upsertScores(Map<Long, Double> scores, boolean allTime) {
