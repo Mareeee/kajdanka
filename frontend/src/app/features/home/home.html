@@ -24,8 +24,52 @@
 
         @if (!loading && recommended.length > 0) {
         <div class="marquee-outer">
-            <div class="marquee-inner" #marqueeInner>
+            <div class="marquee-inner" #marqueeInnerRec>
                 @for (song of displaySongs; track $index) {
+                <div class="marquee-item">
+                    <app-song-card [song]="song" />
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </section>
+
+    <section class="recommended-songs" #carouselSection>
+        <h2 class="section-title">Trending</h2>
+
+        @if (loading) {
+        <div class="global-spinner">
+            <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        }
+
+        @if (!loading && trending.length > 0) {
+        <div class="marquee-outer">
+            <div class="marquee-inner" #marqueeInnerTrend>
+                @for (song of displayTrending; track $index) {
+                <div class="marquee-item">
+                    <app-song-card [song]="song" />
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </section>
+
+    <section class="recommended-songs" #carouselSection>
+        <h2 class="section-title">Hitovi Meseca</h2>
+
+        @if (loading) {
+        <div class="global-spinner">
+            <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        }
+
+        @if (!loading && allTimeTop.length > 0) {
+        <div class="marquee-outer">
+            <div class="marquee-inner" #marqueeInnerAllTime>
+                @for (song of displayAllTimeTop; track $index) {
                 <div class="marquee-item">
                     <app-song-card [song]="song" />
                 </div>
