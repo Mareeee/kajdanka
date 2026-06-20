@@ -2,6 +2,7 @@ package kajdanka.service;
 
 import kajdanka.dto.response.SongDetailDto;
 import kajdanka.entity.Comment;
+import kajdanka.entity.EventType;
 import kajdanka.entity.Song;
 import kajdanka.entity.User;
 import kajdanka.repository.CommentRepository;
@@ -25,6 +26,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final SongRepository songRepository;
     private final UserRepository userRepository;
+    private final EventService eventService;
 
     @Transactional
     public List<SongDetailDto.CommentDto> getComments(Long songId) {
@@ -57,6 +59,7 @@ public class CommentService {
                 .build();
 
         commentRepository.save(newComment);
+        eventService.recordEvent(songId, EventType.COMMENT);
         return getComments(songId);
     }
 

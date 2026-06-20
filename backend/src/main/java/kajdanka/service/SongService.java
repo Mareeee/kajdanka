@@ -4,6 +4,7 @@ import kajdanka.dto.request.CreateSongRequest;
 import kajdanka.dto.request.UpdateSongRequest;
 import kajdanka.dto.response.SongDetailDto;
 import kajdanka.dto.response.SongSummaryDto;
+import kajdanka.entity.EventType;
 import kajdanka.entity.Role;
 import kajdanka.entity.Song;
 import kajdanka.entity.User;
@@ -27,13 +28,21 @@ public class SongService {
 
     private final SongRepository songRepository;
     private final UserRepository userRepository;
+    private final EventService eventService;
 
+    @Transactional
     public Page<SongSummaryDto> searchSongs(
             String search, String genre, String artist, int page, int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return songRepository.search(search, genre, artist, pageable)
+        Page<SongSummaryDto> result = songRepository.search(search, genre, artist, pageable)
                 .map(this::toSummaryDto);
+
+        if (search != null && !search.isBlank()) {
+            result.getContent().forEach(dto -> eventService.recordEvent(dto.id(), EventType.SEARCH_CLICK));
+        }
+
+        return result;
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package kajdanka.config;
 
+import kajdanka.security.GuestTokenFilter;
 import kajdanka.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final GuestTokenFilter guestTokenFilter;
     private final CorsConfig corsConfig;
 
     @Bean
@@ -59,7 +61,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(guestTokenFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
