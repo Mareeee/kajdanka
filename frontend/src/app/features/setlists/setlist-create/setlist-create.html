@@ -1,27 +1,41 @@
-<div class="setlist-create-page container">
-
-    <div class="page-header">
-        <button mat-icon-button routerLink="/profile/{{name}}">
+<div class="page-header">
+    <div class="container">
+        <button mat-icon-button class="back-btn" onclick="history.back()">
             <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Nova setlista</h1>
+        <div class="header-titles">
+            <h1>Nova setlista</h1>
+            <p class="subtitle">Kreiraj kolekciju pesama za probu ili nastup.</p>
+        </div>
     </div>
+</div>
 
+<div class="container form-container">
     <div class="form-card">
         <mat-form-field appearance="outline">
             <mat-label>Naziv setliste</mat-label>
+            <mat-icon matPrefix>queue_music</mat-icon>
             <input matInput [(ngModel)]="name" placeholder="Npr. Proba u petak" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
             <mat-label>Opis (opciono)</mat-label>
+            <mat-icon matPrefix>notes</mat-icon>
             <textarea matInput [(ngModel)]="description" rows="3" placeholder="Kratki opis setliste..."></textarea>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" [disabled]="!name.trim() || loading" (click)="submit()">
-            <mat-icon>playlist_add</mat-icon>
-            Kreiraj setlistu
-        </button>
+        <div class="form-actions">
+            <button mat-stroked-button onclick="history.back()">
+                Otkaži
+            </button>
+            <button mat-raised-button color="primary" [disabled]="!name.trim() || loading" (click)="submit()">
+                @if (loading) {
+                <!-- <mat-spinner diameter="20" class="btn-spinner"></mat-spinner> -->
+                } @else {
+                <mat-icon>playlist_add</mat-icon>
+                }
+                @if (!loading) { Kreiraj setlistu }
+            </button>
+        </div>
     </div>
-
 </div>

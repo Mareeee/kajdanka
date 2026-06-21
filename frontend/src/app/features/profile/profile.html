@@ -10,7 +10,6 @@
 
     <div class="profile-header">
         <div class="container">
-
             <div class="avatar">{{ avatarInitials }}</div>
 
             <div class="profile-info">
@@ -30,39 +29,64 @@
                 Odjavi se
             </button>
             }
-
         </div>
-    </div>
 
-    <div class="profile-content container">
-
-        <div class="section-header">
-            <h2>
+        <div class="container tabs-row">
+            <button class="tab-btn" [class.active]="activeTab() === 'songs'" (click)="setTab('songs')">
                 <mat-icon>library_music</mat-icon>
-                {{ isOwnProfile ? 'Moje pesme' : 'Objavljene pesme' }}
-                <span class="count">{{ profile.songs.length }}</span>
-            </h2>
+                {{ isOwnProfile ? 'Moje pesme' : 'Pesme' }}
+                <span class="tab-count">{{ profile.songs.length }}</span>
+            </button>
+
             @if (isOwnProfile) {
-            <button mat-raised-button color="primary" routerLink="/setlists/new">
-                <mat-icon>playlist_add</mat-icon>
-                Setlista +
+            <button class="tab-btn" [class.active]="activeTab() === 'recent'" (click)="setTab('recent')">
+                <mat-icon>history</mat-icon>
+                Nedavno slušano
+                <span class="tab-count">{{ recentSongs.length }}</span>
+            </button>
+            <button class="tab-btn" [class.active]="activeTab() === 'setlists'" (click)="setTab('setlists')">
+                <mat-icon>queue_music</mat-icon>
+                Setliste
+                <span class="tab-count">{{ setlists.length }}</span>
             </button>
             }
         </div>
+    </div>
 
-        <mat-divider />
+    <div class="container main-content">
 
-        @if (profile.songs.length === 0) {
-        <div class="empty-songs">
-            <mat-icon>music_off</mat-icon>
-            <p>Još nisi dodao nijednu pesmu.</p>
-            <button mat-raised-button color="primary" routerLink="/songs">
-                Istraži pesme
-            </button>
+        @if (activeTab() === 'songs' || activeTab() === 'recent') {
+        <div class="toolbar-row">
+            <div class="view-toggle">
+                <button [class.active]="viewMode() === 'list'" (click)="setViewMode('list')">
+                    <mat-icon>view_list</mat-icon>
+                    Lista
+                </button>
+                <button [class.active]="viewMode() === 'cards'" (click)="setViewMode('cards')">
+                    <mat-icon>grid_view</mat-icon>
+                    Kartice
+                </button>
+            </div>
+
+            @if (isOwnProfile && activeTab() === 'setlists') {} @else {
+            <span class="results-count">
+                {{ activeTab() === 'songs' ? profile.songs.length : recentSongs.length }}
+                pesama
+            </span>
+            }
         </div>
         }
 
-        @if (profile.songs.length > 0) {
+        @if (activeTab() === 'songs') {
+        @if (profile.songs.length === 0) {
+        <div class="empty-state">
+            <mat-icon>music_off</mat-icon>
+            <p>Još nema dodatih pesama.</p>
+            <button mat-stroked-button routerLink="/songs">Istraži pesme</button>
+        </div>
+        }
+
+        @if (profile.songs.length > 0 && viewMode() === 'cards') {
         <div class="songs-grid">
             @for (song of profile.songs; track song.id) {
             <app-song-card [song]="song" />
@@ -70,26 +94,112 @@
         </div>
         }
 
-        @if (isOwnProfile && setlists.length > 0) {
-        <h2 style="margin-top: 2.5rem;">
-            <mat-icon>queue_music</mat-icon>
-            Moje setliste
-            <span class="count">{{ setlists.length }}</span>
-        </h2>
+        @if (profile.songs.length > 0 && viewMode() === 'list') {
+        <div class="songs-table">
+            <div class="table-row table-header">
+                <span class="col-song">Pesma</span>
+                <span class="col-artist">Izvođač</span>
+                <span class="col-views"><mat-icon>visibility</mat-icon></span>
+                <span class="col-like"><mat-icon>favorite_border</mat-icon></span>
+            </div>
+            @for (song of profile.songs; track song.id) {
+            <div class="table-row" (click)="openSong(song)">
+                <div class="col-song">
+                    <button class="play-btn" (click)="$event.stopPropagation(); openSong(song)">
+                        <mat-icon>play_arrow</mat-icon>
+                    </button>
+                    <span class="song-title">{{ song.title }}</span>
+                </div>
+                <div class="col-artist">{{ song.artist }}</div>
+                <div class="col-views">
+                    <mat-icon>visibility</mat-icon>{{ song.viewCount }}
+                </div>
+                <div class="col-like">
+                    <mat-icon>favorite_border</mat-icon>{{ song.likeCount }}
+                </div>
+            </div>
+            }
+        </div>
+        }
+        }
 
-        <mat-divider />
+        @if (activeTab() === 'recent') {
+        @if (recentSongs.length === 0) {
+        <div class="empty-state">
+            <mat-icon>history</mat-icon>
+            <p>Još nisi slušao nijednu pesmu.</p>
+            <button mat-stroked-button routerLink="/songs">Istraži pesme</button>
+        </div>
+        }
+
+        @if (recentSongs.length > 0 && viewMode() === 'cards') {
+        <div class="songs-grid">
+            @for (song of recentSongs; track song.id) {
+            <app-song-card [song]="song" />
+            }
+        </div>
+        }
+
+        @if (recentSongs.length > 0 && viewMode() === 'list') {
+        <div class="songs-table">
+            <div class="table-row table-header">
+                <span class="col-song">Pesma</span>
+                <span class="col-artist">Izvođač</span>
+                <span class="col-views"><mat-icon>visibility</mat-icon></span>
+                <span class="col-like"><mat-icon>favorite_border</mat-icon></span>
+            </div>
+            @for (song of recentSongs; track song.id) {
+            <div class="table-row" (click)="openSong(song)">
+                <div class="col-song">
+                    <button class="play-btn" (click)="$event.stopPropagation(); openSong(song)">
+                        <mat-icon>play_arrow</mat-icon>
+                    </button>
+                    <span class="song-title">{{ song.title }}</span>
+                </div>
+                <div class="col-artist">{{ song.artist }}</div>
+                <div class="col-views">
+                    <mat-icon>visibility</mat-icon>{{ song.viewCount }}
+                </div>
+                <div class="col-like">
+                    <mat-icon>favorite_border</mat-icon>{{ song.likeCount }}
+                </div>
+            </div>
+            }
+        </div>
+        }
+        }
+
+        @if (activeTab() === 'setlists') {
+        <div class="setlists-toolbar">
+            <span class="results-count">{{ setlists.length }} setlista</span>
+            <button mat-stroked-button routerLink="/setlists/new">
+                <mat-icon>playlist_add</mat-icon>
+                Nova setlista
+            </button>
+        </div>
+
+        @if (setlists.length === 0) {
+        <div class="empty-state">
+            <mat-icon>queue_music</mat-icon>
+            <p>Još nemaš setlista.</p>
+            <button mat-stroked-button routerLink="/setlists/new">Kreiraj setlistu</button>
+        </div>
+        }
 
         <div class="setlists-grid">
             @for (setlist of setlists; track setlist.id) {
-            <div class="setlist-card" [routerLink]="['/setlists', setlist.id]" style="cursor:pointer">
-                <mat-icon>queue_music</mat-icon>
+            <div class="setlist-card" [routerLink]="['/setlists', setlist.id]">
+                <div class="setlist-icon">
+                    <mat-icon>queue_music</mat-icon>
+                </div>
                 <div class="setlist-info">
                     <span class="setlist-name">{{ setlist.name }}</span>
                     @if (setlist.description) {
                     <span class="setlist-desc">{{ setlist.description }}</span>
                     }
-                    <span class="setlist-count">{{ setlist.songCount }} pesama</span>
                 </div>
+                <span class="setlist-count">{{ setlist.songCount }} pesama</span>
+                <mat-icon class="setlist-arrow">chevron_right</mat-icon>
             </div>
             }
         </div>

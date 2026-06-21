@@ -1,16 +1,20 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SetlistService } from '../../core/services/setlist.service';
+import { SongService } from '../../core/services/song.service';
 import { SongCardComponent } from '../../shared/components/song-card/song-card';
 import { User } from '../../core/models/user.model';
 import { Setlist } from '../../core/models/setlist.model';
+import { Song } from '../../core/models/song.model';
+
+type Tab = 'songs' | 'liked' | 'setlists' | 'recent';
+type ViewMode = 'cards' | 'list';
 
 @Component({
   selector: 'app-profile',
@@ -19,7 +23,7 @@ import { Setlist } from '../../core/models/setlist.model';
   styleUrls: ['./profile.scss'],
   imports: [
     CommonModule, RouterModule,
-    MatButtonModule, MatIconModule, MatDividerModule,
+    MatButtonModule, MatIconModule,
     MatProgressSpinnerModule, SongCardComponent
   ]
 })
@@ -27,11 +31,18 @@ export class ProfileComponent implements OnInit {
 
   profile: User | null = null;
   setlists: Setlist[] = [];
+  likedSongs: Song[] = [];
+  recentSongs: Song[] = [];
   loading = true;
 
+  activeTab = signal<Tab>('songs');
+  viewMode = signal<ViewMode>('list');
+
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private userService = inject(UserService);
   private setlistService = inject(SetlistService);
+  private songService = inject(SongService);
   public authService = inject(AuthService);
 
   ngOnInit(): void {
@@ -45,12 +56,28 @@ export class ProfileComponent implements OnInit {
     });
 
     if (this.authService.isLoggedIn() &&
-      this.authService.currentUser()?.username === this.route.snapshot.paramMap.get('username')) {
+      this.authService.currentUser()?.username === username) {
       this.setlistService.getMySetlists().subscribe({
         next: setlists => { this.setlists = setlists; },
         error: () => { }
       });
+      this.songService.getRecentlyViewed().subscribe({
+        next: songs => { this.recentSongs = songs; },
+        error: () => { }
+      });
     }
+  }
+
+  setTab(tab: Tab): void {
+    this.activeTab.set(tab);
+  }
+
+  setViewMode(mode: ViewMode): void {
+    this.viewMode.set(mode);
+  }
+
+  openSong(song: Song): void {
+    this.router.navigate(['/songs', song.id]);
   }
 
   logout(): void {

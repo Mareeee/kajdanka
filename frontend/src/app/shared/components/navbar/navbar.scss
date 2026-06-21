@@ -81,14 +81,14 @@ $glass-white: rgba(255, 255, 255, 0.8);
         cursor: pointer;
 
         &:hover {
-            background: rgba($primary-blue, 0.06);
-            color: $primary-blue;
+            background: rgba($primary-blue, 0.5);
+            color: $glass-white;
         }
     }
 
     .active-link {
-        background: rgba($primary-blue, 0.1) !important;
-        color: $primary-blue !important;
+        background: rgba($primary-blue, 0.5) !important;
+        color: $glass-white !important;
     }
 }
 

@@ -20,6 +20,28 @@
                     </span>
                 </div>
             </div>
+            <div class="setlist">
+                @if (authService.currentUser()) {
+                <button mat-stroked-button [matMenuTriggerFor]="setlistMenu">
+                    <mat-icon>playlist_add</mat-icon>
+                    Dodaj u setlistu
+                </button>
+                <mat-menu #setlistMenu="matMenu">
+                    @if (setlists.length === 0) {
+                    <button mat-menu-item routerLink="/setlists/new">
+                        <mat-icon>add</mat-icon>
+                        Kreiraj setlistu
+                    </button>
+                    }
+                    @for (setlist of setlists; track setlist.id) {
+                    <button mat-menu-item (click)="addToSetlist(setlist)">
+                        <mat-icon>queue_music</mat-icon>
+                        {{ setlist.name }}
+                    </button>
+                    }
+                </mat-menu>
+                }
+            </div>
             @if (isOwner) {
             <div class="owner-actions">
                 <button mat-stroked-button [routerLink]="['/songs', song!.id, 'edit']">
@@ -29,26 +51,6 @@
                     <mat-icon>delete</mat-icon> Obriši
                 </button>
             </div>
-            }
-            @if (authService.currentUser()) {
-            <button mat-stroked-button [matMenuTriggerFor]="setlistMenu">
-                <mat-icon>playlist_add</mat-icon>
-                Dodaj u setlistu
-            </button>
-            <mat-menu #setlistMenu="matMenu">
-                @if (setlists.length === 0) {
-                <button mat-menu-item routerLink="/setlists/new">
-                    <mat-icon>add</mat-icon>
-                    Kreiraj setlistu
-                </button>
-                }
-                @for (setlist of setlists; track setlist.id) {
-                <button mat-menu-item (click)="addToSetlist(setlist)">
-                    <mat-icon>queue_music</mat-icon>
-                    {{ setlist.name }}
-                </button>
-                }
-            </mat-menu>
             }
         </div>
     </div>
