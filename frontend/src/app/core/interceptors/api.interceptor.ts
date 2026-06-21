@@ -8,8 +8,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
     }
 
     const apiReq = req.clone({
-        url: `${baseUrl}${req.url.startsWith('/') ? '' : '/'}${req.url}`,
-        withCredentials: true
+        url: `${baseUrl}${req.url.startsWith('/') ? '' : '/'}${req.url}`
     });
 
     return next(apiReq);

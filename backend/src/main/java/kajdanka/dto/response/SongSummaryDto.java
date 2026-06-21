@@ -12,5 +12,6 @@ public record SongSummaryDto(
         int likeCount,
         int viewCount,
         String authorUsername,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String lyrics
 ) {}

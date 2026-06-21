@@ -1,8 +1,8 @@
 @use "sass:color";
 
-$primary-blue: #2563eb;
+$primary-blue: #4F73E6;
 $deep-navy: #1e293b;
-$glass-white: rgba(255, 255, 255, 0.75);
+$glass-white: rgba(255, 255, 255, 0.8);
 
 .navbar-glass {
     position: fixed;
@@ -12,10 +12,10 @@ $glass-white: rgba(255, 255, 255, 0.75);
     width: 95%;
     max-width: 1300px;
     height: 70px;
-    background: $glass-white;
-    backdrop-filter: blur(12px) saturate(180%);
+    background: rgba(12, 15, 21, 0.85);
+    backdrop-filter: blur(4px) saturate(180%);
     border-radius: 20px;
-    color: $deep-navy;
+    color: $glass-white;
     z-index: 1000;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     padding: 0;
@@ -25,6 +25,7 @@ $glass-white: rgba(255, 255, 255, 0.75);
         align-items: center;
         width: 100%;
         padding: 0 24px;
+        gap: 10px;
     }
 }
 
@@ -55,7 +56,7 @@ $glass-white: rgba(255, 255, 255, 0.75);
     .logo-text {
         font-size: 1.3rem;
         font-weight: 800;
-        color: $deep-navy;
+        color: $glass-white;
     }
 }
 
@@ -65,12 +66,13 @@ $glass-white: rgba(255, 255, 255, 0.75);
 
 .nav-menu {
     display: flex;
+    gap: 10px;
 
     a,
     button {
         display: flex;
         align-items: center;
-        color: $deep-navy;
+        color: $glass-white;
         font-weight: 500;
         border-radius: 12px;
         padding: 0 16px;
@@ -79,21 +81,21 @@ $glass-white: rgba(255, 255, 255, 0.75);
         cursor: pointer;
 
         &:hover {
-            background: rgba($primary-blue, 0.06);
-            color: $primary-blue;
+            background: rgba($primary-blue, 0.5);
+            color: $glass-white;
         }
     }
 
     .active-link {
-        background: rgba($primary-blue, 0.1) !important;
-        color: $primary-blue !important;
+        background: rgba($primary-blue, 0.5) !important;
+        color: $glass-white !important;
     }
 }
 
 .nav-search {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgb(66, 73, 82);
     border-radius: 24px;
     padding: 2px 14px;
     margin: 0 20px;
@@ -102,13 +104,13 @@ $glass-white: rgba(255, 255, 255, 0.75);
     transition: background 0.2s ease, border-color 0.2s ease;
 
     &:focus-within {
-        background: rgba(255, 255, 255, 0.5);
-        border-color: $deep-navy;
+        background: rgb(72, 86, 106);
+        border-color: $glass-white;
     }
 }
 
 .search-icon {
-    color: $deep-navy;
+    color: $glass-white;
     font-size: 20px;
     height: 20px;
     width: 20px;
@@ -121,12 +123,12 @@ $glass-white: rgba(255, 255, 255, 0.75);
     background: transparent;
     border: none;
     outline: none;
-    color: $deep-navy;
+    color: $glass-white;
     font-size: 0.9rem;
     padding: 8px 0;
 
     &::placeholder {
-        color: $deep-navy;
+        color: rgb(165, 165, 165);
     }
 }
 

@@ -3,43 +3,41 @@
 
         <div class="header-top">
             @if (!activeSearch) {
-            <h1>Sve pesme</h1>
-            }
-
-            <!-- @if (activeSearch) {
-            <div class="active-search-badge">
-                <mat-icon>search</mat-icon>
-                Rezultati za: <strong>{{ activeSearch }}</strong>
-                <button mat-icon-button (click)="clearFilters()">
-                    <mat-icon>close</mat-icon>
-                </button>
+            <div class="header-titles">
+                <h1>Sve pesme</h1>
+                <p class="subtitle">Pretraži, otkrij i sviraj svoje omiljene pesme.</p>
             </div>
-            } -->
-        </div>
-
-        <div class="filters-row">
-
-            <!-- <mat-form-field appearance="outline" class="genre-filter" subscriptSizing="dynamic">
-                <mat-label>Žanr</mat-label>
-                <mat-select [(value)]="selectedGenre" (selectionChange)="applyFilters()">
-                    <mat-option value="">Svi žanrovi</mat-option>
-                    @for (g of genres; track g) {
-                    <mat-option [value]="g">{{ g }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field> -->
+            }
 
             <span class="results-count">
                 {{ totalElements }} {{ totalElements === 1 ? 'pesma' : 'pesama' }}
             </span>
+        </div>
 
-            <!-- @if (selectedGenre) {
-            <button mat-stroked-button class="clear-btn" (click)="clearFilters()">
-                <mat-icon>filter_list_off</mat-icon>
-                Obriši filtere
+        <div class="toolbar-row">
+            <div class="view-toggle">
+                <button [class.active]="viewMode === 'list'" (click)="setViewMode('list')">
+                    <mat-icon>view_list</mat-icon>
+                    Lista
+                </button>
+                <button [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')">
+                    <mat-icon>grid_view</mat-icon>
+                    Kartice
+                </button>
+            </div>
+
+            <button class="sort-btn" [matMenuTriggerFor]="sortMenu">
+                {{ selectedSort.label }}
+                <mat-icon>expand_more</mat-icon>
             </button>
-            } -->
-
+            <mat-menu #sortMenu="matMenu">
+                @for (option of sortOptions; track option.value) {
+                <button mat-menu-item [class.selected]="option.value === selectedSort.value"
+                    (click)="selectSort(option)">
+                    {{ option.label }}
+                </button>
+                }
+            </mat-menu>
         </div>
 
     </div>
@@ -64,22 +62,80 @@
     }
 
     @if (!loading && songs.length > 0) {
+
+    @if (viewMode === 'cards') {
     <div class="songs-grid">
         @for (song of songs; track song.id) {
         <app-song-card [song]="song" />
         }
     </div>
+    }
+
+    @if (viewMode === 'list') {
+    <div class="songs-table">
+        <div class="table-row table-header">
+            <span class="col-song">Pesma</span>
+            <span class="col-artist">Izvođač</span>
+            <span class="col-capo">Capo</span>
+            <span class="col-chords">Akordi</span>
+            <span class="col-views">
+                <mat-icon>visibility</mat-icon>
+                Pregledi
+            </span>
+            <span class="col-like">Lajkovi</span>
+        </div>
+
+        @for (song of songs; track song.id) {
+        <div class="table-row" (click)="openSong(song)">
+            <div class="col-song">
+                <button class="play-btn" (click)="$event.stopPropagation(); openSong(song)">
+                    <mat-icon>play_arrow</mat-icon>
+                </button>
+                <span class="song-title">{{ song.title }}</span>
+            </div>
+
+            <div class="col-artist">{{ song.artist }}</div>
+
+            <div class="col-capo">
+                <span class="capo-chip">{{ song.capo }}</span>
+            </div>
+
+            <div class="col-chords">
+                <mat-icon>grid_on</mat-icon>
+                {{ getChordCount(song) }}
+            </div>
+
+            <div class="col-views">
+                <mat-icon>visibility</mat-icon>
+                {{ formatViews(song.viewCount) }}
+            </div>
+
+            <div class="col-like">
+                <button class="like-btn" [class.liked]="isLiked(song.id)" (click)="toggleLike(song, $event)">
+                    <mat-icon>{{ isLiked(song.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+    }
 
     <div class="custom-paginator">
-        <button [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
+        <button class="page-arrow" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
             <mat-icon>chevron_left</mat-icon>
         </button>
 
-        <span class="page-info">
-            Stranica <strong>{{ currentPage + 1 }}</strong> od <strong>{{ totalPages }}</strong>
-        </span>
+        @for (page of pageNumbers; track $index) {
+        @if (page === '...') {
+        <span class="page-dots">...</span>
+        } @else {
+        <button class="page-number" [class.active]="page === currentPage + 1" (click)="goToPage($any(page))">
+            {{ page }}
+        </button>
+        }
+        }
 
-        <button [disabled]="currentPage >= totalPages - 1" (click)="changePage(currentPage + 1)">
+        <button class="page-arrow" [disabled]="currentPage >= totalPages - 1" (click)="changePage(currentPage + 1)">
             <mat-icon>chevron_right</mat-icon>
         </button>
     </div>

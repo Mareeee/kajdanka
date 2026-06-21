@@ -9,8 +9,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SetlistService } from '../../../core/services/setlist.service';
+import { SongService } from '../../../core/services/song.service';
 import { SetlistDetail } from '../../../core/models/setlist.model';
 import { Song } from '../../../core/models/song.model';
+import { ChordDisplayComponent } from '../../../shared/components/chord-display/chord-display';
+import { transposeLyrics, applyNotation } from '../../../core/utils/transpose.util';
 
 @Component({
   selector: 'app-setlist-detail',
@@ -20,7 +23,8 @@ import { Song } from '../../../core/models/song.model';
   imports: [
     CommonModule, RouterModule, FormsModule,
     MatButtonModule, MatIconModule, MatInputModule,
-    MatFormFieldModule, MatProgressSpinnerModule
+    MatFormFieldModule, MatProgressSpinnerModule,
+    ChordDisplayComponent
   ]
 })
 export class SetlistDetailComponent implements OnInit {
@@ -34,8 +38,13 @@ export class SetlistDetailComponent implements OnInit {
   editDescription = '';
   saving = false;
 
+  activeSong: Song | null = null;
+  activeSongFull: Song | null = null;
+  loadingSong = false;
+
   private route = inject(ActivatedRoute);
   private setlistService = inject(SetlistService);
+  private songService = inject(SongService);
   private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
@@ -44,6 +53,9 @@ export class SetlistDetailComponent implements OnInit {
       next: setlist => {
         this.setlist = setlist;
         this.loading = false;
+        if (setlist.songs.length > 0) {
+          this.selectSong(setlist.songs[0]);
+        }
       },
       error: () => { this.loading = false; }
     });
@@ -58,11 +70,36 @@ export class SetlistDetailComponent implements OnInit {
     );
   }
 
+  selectSong(song: Song): void {
+    this.activeSong = song;
+    this.activeSongFull = null;
+    this.loadingSong = true;
+    this.songService.getSong(song.id).subscribe({
+      next: full => {
+        this.activeSongFull = full;
+        this.loadingSong = false;
+      },
+      error: () => { this.loadingSong = false; }
+    });
+  }
+
+  get transposedLyrics(): string {
+    if (!this.activeSongFull?.lyrics) return '';
+    return applyNotation(transposeLyrics(this.activeSongFull.lyrics, 0), 'sharp');
+  }
+
   removeSong(song: Song): void {
     if (!this.setlist) return;
     this.setlistService.removeSong(this.setlist.id, song.id).subscribe({
       next: updated => {
         this.setlist = updated;
+        if (this.activeSong?.id === song.id) {
+          this.activeSong = null;
+          this.activeSongFull = null;
+          if (updated.songs.length > 0) {
+            this.selectSong(updated.songs[0]);
+          }
+        }
         this.snackBar.open('Pesma uklonjena.', 'Zatvori', { duration: 2500 });
       },
       error: () => {

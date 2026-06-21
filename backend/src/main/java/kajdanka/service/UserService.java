@@ -39,7 +39,8 @@ public class UserService {
                         song.getLikeCount(),
                         song.getViewCount(),
                         user.getUsername(),
-                        song.getCreatedAt()
+                        song.getCreatedAt(),
+                        song.getLyrics()
                 ))
                 .toList();
 

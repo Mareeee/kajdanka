@@ -1,5 +1,13 @@
 @use '@angular/material' as mat;
 
+@include mat.theme((color: (theme-type: light,
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
 html,
 body {
   height: 100%;
@@ -31,4 +39,33 @@ a {
 
 .mat-mdc-option {
   color: #1e293b !important;
+}
+
+.mat-mdc-menu-panel {
+  background-color: #ffffff !important;
+  width: 165px !important;
+}
+
+.mat-mdc-menu-item {
+  color: #1e293b !important;
+}
+
+.mat-mdc-menu-item:hover:not([disabled]) {
+  background-color: rgba(79, 115, 230, 0.08) !important;
+}
+
+.mdc-snackbar__surface {
+  background-color: #1e293b !important;
+}
+
+.mat-mdc-snack-bar-label {
+  color: #ffffff !important;
+}
+
+.mat-mdc-snack-bar-action .mat-mdc-button {
+  color: #90caf9 !important;
+}
+
+.mat-mdc-icon-button:hover .mat-mdc-button-persistent-ripple::before {
+  background-color: rgba(0, 0, 0, 0.08) !important;
 }

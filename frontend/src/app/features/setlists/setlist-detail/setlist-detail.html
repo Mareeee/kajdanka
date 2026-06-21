@@ -12,6 +12,7 @@
                 <span class="subtitle">{{ setlist.description }}</span>
                 }
             </div>
+            <span class="song-count">{{ setlist.songs.length }} pesama</span>
             <button mat-icon-button class="edit-icon-btn" (click)="startEdit()">
                 <mat-icon>edit</mat-icon>
             </button>
@@ -39,72 +40,96 @@
             </div>
             }
         </div>
-
-        @if (!editMode && setlist) {
-        <div class="filters-row">
-            <span class="results-count">{{ setlist.songs.length }} {{ setlist.songs.length === 1 ? 'pesma' : 'pesama'
-                }}</span>
-        </div>
-        }
     </div>
 </div>
 
-<div class="container main-content">
+@if (loading) {
+<div class="center-state">
+    <mat-spinner diameter="44"></mat-spinner>
+</div>
+}
 
-    @if (loading) {
-    <div class="center-state">
-        <mat-spinner diameter="44"></mat-spinner>
-    </div>
-    }
+@if (!loading && !setlist) {
+<div class="empty-state">
+    <mat-icon>queue_music</mat-icon>
+    <p>Setlista nije pronađena.</p>
+</div>
+}
 
-    @if (!loading && !setlist) {
-    <div class="empty-state">
-        <mat-icon>queue_music</mat-icon>
-        <p>Setlista nije pronađena.</p>
-    </div>
-    }
+@if (!loading && setlist) {
+<div class="stage-layout">
 
-    @if (!loading && setlist) {
+    <aside class="song-sidebar">
+        <div class="sidebar-search">
+            <mat-icon>search</mat-icon>
+            <input type="text" placeholder="Pretraži..." [(ngModel)]="searchQuery" />
+        </div>
 
-    <div class="search-row">
-        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-            <mat-label>Pretraži pesme u setlisti</mat-label>
-            <mat-icon matPrefix>search</mat-icon>
-            <input matInput [(ngModel)]="searchQuery" />
-        </mat-form-field>
-    </div>
+        @if (filteredSongs.length === 0) {
+        <div class="sidebar-empty">
+            <mat-icon>search_off</mat-icon>
+            <p>{{ setlist.songs.length === 0 ? 'Setlista je prazna.' : 'Nema rezultata.' }}</p>
+        </div>
+        }
 
-    @if (filteredSongs.length === 0) {
-    <div class="empty-state">
-        <mat-icon>search_off</mat-icon>
-        <p>
-            @if (setlist.songs.length === 0) { Setlista je prazna. }
-            @else { Nema rezultata za "{{ searchQuery }}". }
-        </p>
-    </div>
-    }
-
-    <div class="songs-list">
-        @for (song of filteredSongs; track song.id) {
-        <div class="song-row">
-            <div class="song-main" [routerLink]="['/songs', song.id]">
-                <span class="song-title">{{ song.title }}</span>
-                <span class="song-artist">{{ song.artist }}</span>
+        <div class="sidebar-list">
+            @for (song of filteredSongs; track song.id) {
+            <div class="sidebar-item" [class.active]="activeSong?.id === song.id" (click)="selectSong(song)">
+                <div class="sidebar-item-info">
+                    <span class="sidebar-title">{{ song.title }}</span>
+                    <span class="sidebar-artist">{{ song.artist }}</span>
+                </div>
+                <div class="sidebar-item-meta">
+                    @if (song.keySignature) {
+                    <span class="key-badge">{{ song.keySignature }}</span>
+                    }
+                    <button mat-icon-button class="remove-btn" (click)="$event.stopPropagation(); removeSong(song)">
+                        <mat-icon>remove_circle_outline</mat-icon>
+                    </button>
+                </div>
             </div>
-            <div class="song-meta">
-                @if (song.keySignature) {
-                <span class="key-badge">
-                    <mat-icon>music_note</mat-icon>{{ song.keySignature }}
-                </span>
-                }
-                <button mat-icon-button class="remove-btn" (click)="removeSong(song)" title="Ukloni iz setliste">
-                    <mat-icon>remove_circle_outline</mat-icon>
-                </button>
+            }
+        </div>
+    </aside>
+
+    <main class="song-viewer">
+        @if (!activeSong) {
+        <div class="viewer-empty">
+            <mat-icon>queue_music</mat-icon>
+            <p>Odaberi pesmu iz liste.</p>
+        </div>
+        }
+
+        @if (activeSong && loadingSong) {
+        <div class="viewer-loading">
+            <mat-spinner diameter="40"></mat-spinner>
+        </div>
+        }
+
+        @if (activeSong && !loadingSong && activeSongFull) {
+        <div class="viewer-content">
+            <div class="viewer-header">
+                <h2 class="viewer-title">{{ activeSongFull.title }}</h2>
+                <p class="viewer-artist">{{ activeSongFull.artist }}</p>
+                <div class="viewer-meta">
+                    @if (activeSongFull.keySignature) {
+                    <span class="meta-chip">
+                        <mat-icon>music_note</mat-icon>{{ activeSongFull.keySignature }}
+                    </span>
+                    }
+                    @if (activeSongFull.capo) {
+                    <span class="meta-chip">
+                        <mat-icon>tune</mat-icon>Kapo {{ activeSongFull.capo }}
+                    </span>
+                    }
+                </div>
+            </div>
+            <div class="viewer-lyrics">
+                <app-chord-display [lyrics]="transposedLyrics" />
             </div>
         </div>
         }
-    </div>
-
-    }
+    </main>
 
 </div>
+}

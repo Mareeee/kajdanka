@@ -1,3 +1,9 @@
+$primary-blue: #4F73E6;
+$deep-navy: #1e293b;
+$muted-text: #64748b;
+$faint-text: #94a3b8;
+$border-color: rgba(15, 23, 42, 0.08);
+
 .center {
     display: flex;
     justify-content: center;
@@ -139,6 +145,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        color: $deep-navy !important;
     }
 
     button.active {
@@ -155,6 +162,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: $deep-navy !important;
 
     ::ng-deep .mdc-button__label {
         display: inline-flex;
@@ -198,7 +206,7 @@
 }
 
 .chord-chip {
-    background: #1565c0 !important;
+    background: rgba($primary-blue, 0.1) !important;
     color: white !important;
     font-weight: 700;
 }
@@ -215,6 +223,8 @@
     justify-content: center;
 }
 
+.setlist,
+
 .owner-actions {
     display: flex;
     gap: 12px;
@@ -222,7 +232,9 @@
 
     button {
         border-radius: 10px;
+        border: none;
         background-color: rgba(100, 162, 255, 0.5);
+        color: white;
     }
 
     :hover {

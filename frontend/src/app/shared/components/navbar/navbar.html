@@ -15,15 +15,6 @@
             <a mat-button routerLink="/songs">
                 Pesme
             </a>
-            <a mat-button routerLink="/chords" routerLinkActive="active-link">
-                <mat-icon>menu_book</mat-icon> Akordi
-            </a>
-            <a mat-button routerLink="/tuner" routerLinkActive="active-link">
-                <mat-icon>tune</mat-icon> Štimer
-            </a>
-            <a mat-button routerLink="/analyze" routerLinkActive="active-link">
-                <mat-icon>auto_awesome</mat-icon> Analiziraj
-            </a>
         </nav>
         }
 
@@ -42,7 +33,7 @@
 
         <div class="nav-menu">
 
-            @if (!isOnHomePage()) {
+            @if (!isOnHomePage() && authService.isLoggedIn()) {
             <a mat-button routerLink="/songs/new" routerLinkActive="active-link">
                 <mat-icon>add</mat-icon> Dodaj pesmu
             </a>
@@ -55,9 +46,9 @@
             </a>
             }
 
-            @if (!authService.isLoggedIn() && isOnHomePage()) {
+            @if (!authService.isLoggedIn()) {
             <a mat-button routerLink="/login">Prijavi se</a>
-            <button mat-flat-button routerLink="/register">
+            <button mat-button routerLink="/register">
                 <mat-icon>person_add</mat-icon>
                 <span>Registruj se</span>
             </button>
