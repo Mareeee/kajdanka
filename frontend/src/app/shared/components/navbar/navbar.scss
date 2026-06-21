@@ -25,6 +25,7 @@ $glass-white: rgba(255, 255, 255, 0.75);
         align-items: center;
         width: 100%;
         padding: 0 24px;
+        gap: 10px;
     }
 }
 
@@ -65,6 +66,7 @@ $glass-white: rgba(255, 255, 255, 0.75);
 
 .nav-menu {
     display: flex;
+    gap: 10px;
 
     a,
     button {

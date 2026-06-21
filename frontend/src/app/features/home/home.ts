@@ -1,7 +1,7 @@
 import {
   Component, OnInit, OnDestroy, AfterViewChecked,
   CUSTOM_ELEMENTS_SCHEMA, ViewChild, ElementRef,
-  Inject, PLATFORM_ID
+  Inject, PLATFORM_ID, NgZone
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -55,7 +55,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor(
     private songService: SongService,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: Object,
+    private ngZone: NgZone
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
@@ -71,7 +72,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.trending = results.trending;
         this.allTimeTop = results.allTimeTop;
 
-        const windowWidth = window?.innerWidth * 3 || 4000;
+
+        let windowWidth = 4000;
+        if (this.isBrowser) {
+          windowWidth = window?.innerWidth * 3 || 4000;
+        }
 
         if (this.recommended.length > 0) {
           const copies = Math.max(4, Math.ceil(windowWidth / (this.recommended.length * SLIDE_WIDTH)));
@@ -129,7 +134,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
   };
 
   private startScroll(): void {
-    this.animId = requestAnimationFrame(this.tick);
+    this.ngZone.runOutsideAngular(() => {
+      this.animId = requestAnimationFrame(this.tick);
+    });
   }
 
   scrollToCarousel(): void {
