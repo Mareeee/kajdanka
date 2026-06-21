@@ -10,7 +10,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { SongService } from '../../core/services/song.service';
 import { Song } from '../../core/models/song.model';
 import { SongCardComponent } from '../../shared/components/song-card/song-card';
-import { FooterComponent } from '../../shared/footer/footer';
 import { forkJoin } from 'rxjs';
 
 const SLIDE_WIDTH = 300;
@@ -21,7 +20,7 @@ const SPEED = 0.6;
   standalone: true,
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
-  imports: [CommonModule, RouterModule, MatProgressSpinnerModule, MatIconModule, SongCardComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, MatProgressSpinnerModule, MatIconModule, SongCardComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {

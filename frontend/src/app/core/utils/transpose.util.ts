@@ -8,7 +8,7 @@ const ENHARMONIC: Record<string, string> = {
     'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B'
 };
 
-const CHORD_RE = /^[A-H](#|b)?[^\s\/]*(\/[A-H](#|b)?[^\s]*)?$/;
+const CHORD_RE = /^[A-H](#|b)?(m|min|maj|maj7|min7|dom7|dim|aug|sus[24]?|add[0-9]+|[0-9M+𝚫])*((\/[A-H](#|b)?(m|min|maj|maj7|min7|dom7|dim|aug|sus[24]?|add[0-9]+|[0-9M+𝚫])*)?)$/;
 
 function isChord(token: string): boolean {
     return CHORD_RE.test(token.trim());

@@ -1,6 +1,6 @@
 @use "sass:color";
 
-$primary-blue: #2563eb;
+$primary-blue: #4F73E6;
 $deep-navy: #1e293b;
 $card-white: rgba(255, 255, 255, 0.8);
 
@@ -15,7 +15,7 @@ $card-white: rgba(255, 255, 255, 0.8);
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 20px rgba($deep-navy, 0.03);
-    min-height: 220px;
+    min-height: 210px;
 
     &:hover {
         transform: translateY(-8px);
@@ -52,7 +52,7 @@ mat-card-header {
     }
 
     mat-card-subtitle {
-        color: $primary-blue !important;
+        color: $deep-navy !important;
         font-weight: 500;
         font-size: 0.95rem;
     }
@@ -101,7 +101,6 @@ mat-card-header {
 }
 
 .card-stats {
-    margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid rgba(0, 0, 0, 0.04);
     display: flex;

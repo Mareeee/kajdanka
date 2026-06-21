@@ -189,7 +189,8 @@ public class RecommendationService {
                 song.getLikeCount(),
                 song.getViewCount(),
                 song.getUser() != null ? song.getUser().getUsername() : null,
-                song.getCreatedAt()
+                song.getCreatedAt(),
+                song.getLyrics()
         );
     }
 }

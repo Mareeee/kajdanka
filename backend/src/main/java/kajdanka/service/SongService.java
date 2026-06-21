@@ -153,7 +153,8 @@ public class SongService {
                 song.getLikeCount(),
                 song.getViewCount(),
                 song.getUser() != null ? song.getUser().getUsername() : "Anonymous",
-                song.getCreatedAt()
+                song.getCreatedAt(),
+                song.getLyrics()
         );
     }
 

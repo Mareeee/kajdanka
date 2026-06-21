@@ -84,7 +84,8 @@ public class SongController {
                             s.getKeySignature(), s.getCapo(), s.getLikeCount(),
                             s.getViewCount(),
                             s.getUser() != null ? s.getUser().getUsername() : null,
-                            s.getCreatedAt()
+                            s.getCreatedAt(),
+                            s.getLyrics()
                     );
                 })
                 .toList();
@@ -104,7 +105,8 @@ public class SongController {
                             s.getKeySignature(), s.getCapo(), s.getLikeCount(),
                             s.getViewCount(),
                             s.getUser() != null ? s.getUser().getUsername() : null,
-                            s.getCreatedAt()
+                            s.getCreatedAt(),
+                            s.getLyrics()
                     );
                 })
                 .toList();
@@ -140,7 +142,8 @@ public class SongController {
                             s.getKeySignature(), s.getCapo(), s.getLikeCount(),
                             s.getViewCount(),
                             s.getUser() != null ? s.getUser().getUsername() : null,
-                            s.getCreatedAt()
+                            s.getCreatedAt(),
+                            s.getLyrics()
                     );
                 })
                 .toList();
